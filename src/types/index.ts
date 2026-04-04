@@ -12,7 +12,8 @@ export interface AppManifest {
   component: React.LazyExoticComponent<React.ComponentType>
   category: AppCategory
   isPinned: boolean
-  ramCost: number // simulated MB
+  baseRam: number // simulated MB baseline
+  calculateUsedRam?: () => Promise<number> // dynamic RAM; falls back to baseRam
 }
 
 // ─── Notifications ────────────────────────────────────────────────────────────
@@ -24,6 +25,7 @@ export interface Notification {
   body: string
   timestamp: number // Unix ms
   read: boolean
+  persistent?: boolean // if true, auto-clear is skipped
 }
 
 // ─── Contacts ─────────────────────────────────────────────────────────────────
@@ -74,24 +76,29 @@ export interface StorageFile {
 
 // ─── Process / Resource Management ───────────────────────────────────────────
 
-export type ProcessStatus = 'active' | 'suspended' | 'killed'
+export type ProcessType = 'app' | 'daemon'
+export type ProcessStatus = 'active' | 'suspended' | 'swapped' | 'killed'
 
 export interface Process {
-  appId: string
-  ramUsage: number // simulated MB
+  pid: string          // appId for apps, service name for daemons
+  type: ProcessType
+  name: string         // display name
+  appId?: string       // only present for app processes
+  ramUsage: number     // simulated MB; 0 when swapped
   status: ProcessStatus
-  startedAt: number // Unix ms
+  startedAt: number    // Unix ms
 }
 
 // ─── OS State (Zustand store contract) ───────────────────────────────────────
 
-export interface OSState {
+export interface OSData {
   // ── System state ──
   isLocked: boolean
   wallpaper: string
   brightness: number // 0–100
   volume: number // 0–100
   battery: number // 0–100
+  isCharging: boolean
   time: Date
   wifiStrength: number // 0–4
   signalStrength: number // 0–4
@@ -101,37 +108,50 @@ export interface OSState {
   hapticsEnabled: boolean
 
   // ── App / window state ──
-  openApps: AppManifest[]
   focusedAppId: string | null
   totalRamUsed: number // simulated MB
+  processes: Process[]
 
   // ── Notifications ──
   notifications: Notification[]
 
   // ── Media ──
   currentTrack: { title: string; artist: string } | null
+}
 
-  // ── Actions ──
+export interface OSActions {
   lock: () => void
   unlock: () => void
-  openApp: (app: AppManifest) => void
+  openApp: (appId: string) => void
   closeApp: (appId: string) => void
   focusApp: (appId: string) => void
   killAllApps: () => void
+  suspendApp: (appId: string) => void
+  resumeApp: (appId: string) => void
+  swapApp: (appId: string) => void
+  unswapApp: (appId: string) => void
+  registerDaemon: (name: string, ramUsage: number) => void
+  unregisterDaemon: (name: string) => void
+  updateProcessRam: (appId: string, ramUsage: number) => void
   pushNotification: (notification: Notification) => void
   clearNotification: (id: string) => void
+  clearAllNotifications: () => void
   setBrightness: (value: number) => void
   setVolume: (value: number) => void
   toggleDarkMode: () => void
   setBattery: (value: number) => void
+  setIsCharging: (charging: boolean) => void
   setTime: (time: Date) => void
   setAccentColor: (color: string) => void
   toggleDoNotDisturb: () => void
   setWallpaper: (wallpaper: string) => void
-  setTotalRamUsed: (ram: number) => void
   setCurrentTrack: (track: { title: string; artist: string } | null) => void
   toggleHaptics: () => void
+  setWifiStrength: (value: number) => void
+  setSignalStrength: (value: number) => void
 }
+
+export type OSState = OSData & OSActions
 
 // ─── Kernel Event Bus (Mitt event map) ───────────────────────────────────────
 
@@ -153,6 +173,7 @@ export type KernelEventMap = {
   'system:unlock': void
   'notification:push': Notification
   'notification:clear': { id: string }
+  'notification:clear-all': void
   'system:sound': { type: SoundType }
   'system:brightness': { value: number }
   'system:volume': { value: number }

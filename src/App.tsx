@@ -7,6 +7,7 @@
 
 import { useState } from 'react'
 import { GlassCard, GlassButton, GlassPill, IconWrapper, Typography, colors } from './design'
+import { useOSStore } from './kernel/store'
 
 const APPS = [
   { icon: '📱', color: '#6090FF', label: 'Phone' },
@@ -20,6 +21,8 @@ const APPS = [
 export default function App() {
   const [activeTab, setActiveTab] = useState('All')
   const tabs = ['All', 'Apps', 'System', 'Media']
+
+  const { isLocked, battery, volume, brightness, lock, unlock } = useOSStore()
 
   return (
     <div style={{
@@ -145,11 +148,28 @@ export default function App() {
         </div>
       </GlassCard>
 
+      {/* Phase 3 — Kernel Store Debug */}
+      <GlassCard>
+        <Typography variant="title" style={{ marginBottom: 16 }}>Kernel Store — Phase 3</Typography>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 16 }}>
+          <Typography variant="label">
+            Lock: <span style={{ color: isLocked ? '#FF6060' : '#60FF90' }}>{isLocked ? 'Locked' : 'Unlocked'}</span>
+          </Typography>
+          <Typography variant="label">Battery: {battery}%</Typography>
+          <Typography variant="label">Volume: {volume}</Typography>
+          <Typography variant="label">Brightness: {brightness}</Typography>
+        </div>
+        <div style={{ display: 'flex', gap: 8 }}>
+          <GlassButton variant="primary" onClick={unlock}>Unlock</GlassButton>
+          <GlassButton variant="ghost" onClick={lock}>Lock</GlassButton>
+        </div>
+      </GlassCard>
+
       {/* Status */}
       <div style={{ textAlign: 'center', paddingBottom: 24 }}>
         <Typography variant="muted">
           All tokens, variants, and components are working.
-          Phase 1 complete.
+          Phase 1 complete. Kernel store live — Phase 3 complete.
         </Typography>
       </div>
     </div>

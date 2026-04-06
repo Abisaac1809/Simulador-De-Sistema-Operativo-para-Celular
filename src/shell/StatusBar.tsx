@@ -81,7 +81,7 @@ export default function StatusBar({ transparent = false }: StatusBarProps) {
       <div style={rightGroupStyle}>
         <SignalBars strength={signalStrength} size={16} />
         <WifiIcon strength={wifiStrength} size={17} />
-        <BatteryIcon level={15} charging={isCharging} size={14} />
+        <BatteryIcon level={battery} charging={isCharging} size={14} />
       </div>
     </div>
   )

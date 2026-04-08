@@ -7,6 +7,10 @@ import { colors, spacing, glass } from '../design/tokens'
 import { slideUpFull } from '../design/animations'
 import StatusBar from './StatusBar'
 
+export interface LockScreenProps {
+  wallpaper?: string
+}
+
 const UNLOCK_THRESHOLD = 60
 
 function formatDate(date: Date): string {
@@ -21,7 +25,7 @@ function formatTime(date: Date): string {
   return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })
 }
 
-export default function LockScreen() {
+export default function LockScreen({ wallpaper }: LockScreenProps = {}) {
   const time = useOSStore(s => s.time)
   const unlock = useOSStore(s => s.unlock)
 
@@ -67,12 +71,14 @@ export default function LockScreen() {
         inset: 0,
         display: 'flex',
         flexDirection: 'column',
-        background: colors.bgGradient,
+        background: wallpaper ? `url(${wallpaper}) center/cover no-repeat` : colors.bgGradient,
         overflow: 'hidden',
         y: springY,
       }}
     >
-      <div
+      {!wallpaper && (
+        <>
+          <div
         className="ambient-blob"
         style={{
           width: 300,
@@ -100,6 +106,8 @@ export default function LockScreen() {
           '--blob-ty': '20px',
         }}
       />
+        </>
+      )}
 
       {/* Status bar */}
       <StatusBar transparent />

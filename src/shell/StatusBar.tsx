@@ -26,6 +26,7 @@ const barStyle: CSSProperties = {
   paddingTop: 'env(safe-area-inset-top, 0px)',
   zIndex: 100,
   flexShrink: 0,
+  pointerEvents: 'none',
 }
 
 const timeStyle: CSSProperties = {

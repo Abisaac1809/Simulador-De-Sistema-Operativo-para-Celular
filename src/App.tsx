@@ -7,16 +7,17 @@ import LockScreen from './shell/LockScreen'
 import HomeScreen from './shell/HomeScreen'
 import AppContainer from './shell/AppContainer'
 import AppSwitcher from './shell/AppSwitcher'
+
+import appleWallpaper from './assets/wallpapers/apple.jpg'
 import NotificationToasts from './shell/NotificationToasts'
 import NotificationCenter from './shell/NotificationCenter'
 import StatusBar from './shell/StatusBar'
+import AssistiveTouch from './shell/assistive-touch'
 
 // ── Constants ─────────────────────────────────────────────────
-const SWITCHER_SWIPE_THRESHOLD  = 60   // px upward to open the switcher
-const SWITCHER_MAX_VELOCITY     = 1.5  // max vy — distinguishes "slow" from fast swipes
-const GESTURE_ZONE_HEIGHT       = 40   // px, bottom-edge strip that listens for swipe-up
-const NOTIF_CENTER_OPEN_THRESHOLD = 60 // px downward to open notification center
-const TOP_ZONE_HEIGHT           = 44   // px, top-edge strip that listens for swipe-down
+const SWITCHER_SWIPE_THRESHOLD = 60   // px upward to open the switcher
+const SWITCHER_MAX_VELOCITY = 1.5  // max vy — distinguishes "slow" from fast swipes
+const GESTURE_ZONE_HEIGHT = 40   // px, bottom-edge strip that listens for swipe-up
 
 // ── Styles ────────────────────────────────────────────────────
 const statusBarOverlayStyle: CSSProperties = {
@@ -38,30 +39,12 @@ const gestureZoneStyle: CSSProperties = {
   touchAction: 'none',
 }
 
-const topGestureZoneStyle: CSSProperties = {
-  position: 'absolute',
-  top: 0,
-  left: 0,
-  right: 0,
-  height: TOP_ZONE_HEIGHT,
-  zIndex: 31,
-  touchAction: 'none',
-}
-
 export default function App() {
-  const isLocked     = useOSStore(s => s.isLocked)
+  const isLocked = useOSStore(s => s.isLocked)
   const focusedAppId = useOSStore(s => s.focusedAppId)
 
-  const [isSwitcherOpen,    setIsSwitcherOpen]    = useState(false)
+  const [isSwitcherOpen, setIsSwitcherOpen] = useState(false)
   const [isNotifCenterOpen, setIsNotifCenterOpen] = useState(false)
-
-  const bindTopZone = useDrag(
-    ({ movement: [, my], last }) => {
-      if (!last) return
-      if (my > NOTIF_CENTER_OPEN_THRESHOLD) setIsNotifCenterOpen(true)
-    },
-    { axis: 'y', filterTaps: true, threshold: 10 },
-  )
 
   const bindGestureZone = useDrag(
     ({ movement: [, my], last, velocity: [, vy] }) => {
@@ -79,8 +62,8 @@ export default function App() {
       {/* Lock / Home transition */}
       <AnimatePresence mode="wait">
         {isLocked
-          ? <LockScreen key="lock" />
-          : <HomeScreen key="home" />
+          ? <LockScreen key="lock" wallpaper={appleWallpaper} />
+          : <HomeScreen key="home" wallpaper={appleWallpaper} />
         }
       </AnimatePresence>
 
@@ -108,11 +91,6 @@ export default function App() {
         </div>
       )}
 
-      {/* Swipe-down zone at the top edge — z-index 31 */}
-      {!isLocked && (
-        <div style={topGestureZoneStyle} {...bindTopZone()} />
-      )}
-
       {/* Notification center panel — z-index 35 */}
       {!isLocked && (
         <NotificationCenter
@@ -123,6 +101,12 @@ export default function App() {
 
       {/* Toast notifications — z-index 40 */}
       {!isLocked && <NotificationToasts />}
+
+      {/* AssistiveTouch floating ball — z-index 45 */}
+      <AssistiveTouch
+        onOpenSwitcher={() => setIsSwitcherOpen(true)}
+        onOpenNotifCenter={() => setIsNotifCenterOpen(true)}
+      />
     </div>
   )
 

@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useMemo, useCallback } from 'react'
+import { useState, useRef, useEffect, useMemo, useCallback, type CSSProperties } from 'react'
 import { motion, useMotionValue, useTransform, animate } from 'framer-motion'
 import { useDrag } from '@use-gesture/react'
 import { getAllApps, getApp } from '../kernel/registry'
@@ -6,9 +6,28 @@ import { kernelBus } from '../kernel/events'
 import { useOSStore } from '../kernel/store'
 import { colors, spacing } from '../design/tokens'
 import AppIcon from './AppIcon'
+import AnalogClock from '../widgets/AnalogClock'
+import CalendarWidget from '../widgets/CalendarWidget'
 import DotIndicator from './DotIndicator'
 import StatusBar from './StatusBar'
 import Dock from './Dock'
+
+export interface HomeScreenProps {
+  wallpaper?: string
+}
+
+const WIDGET_GRID_COL_SPAN = 2
+const WIDGET_GRID_ROW_SPAN = 2
+
+const WIDGET_SLOT_STYLE: CSSProperties = {
+  gridColumn: `span ${WIDGET_GRID_COL_SPAN}`,
+  gridRow: `span ${WIDGET_GRID_ROW_SPAN}`,
+}
+
+const CALENDAR_SLOT_STYLE: CSSProperties = {
+  gridColumn: '3 / span 2',
+  gridRow: '1 / span 2',
+}
 
 const ICONS_PER_PAGE = 16
 const COLUMNS = 4
@@ -61,7 +80,7 @@ interface DropTarget {
 
 // ─── Component ─────────────────────────────────────────────────────────────────
 
-export default function HomeScreen() {
+export default function HomeScreen({ wallpaper }: HomeScreenProps = {}) {
   const openApp = useOSStore(s => s.openApp)
   const [currentPage, setCurrentPage] = useState(0)
   const containerRef = useRef<HTMLDivElement>(null)
@@ -80,17 +99,17 @@ export default function HomeScreen() {
 
   // Refs for latest values — prevent stale closures inside document-level listeners
   const currentPageRef = useRef(0)
-  const dragStateRef   = useRef<DragState | null>(null)
-  const dropTargetRef  = useRef<DropTarget | null>(null)
-  const layoutRef      = useRef<string[][]>(layout)
+  const dragStateRef = useRef<DragState | null>(null)
+  const dropTargetRef = useRef<DropTarget | null>(null)
+  const layoutRef = useRef<string[][]>(layout)
   const pageSwitchTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const longPressTimer  = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const longPressStart  = useRef({ x: 0, y: 0 })
+  const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const longPressStart = useRef({ x: 0, y: 0 })
 
   useEffect(() => { currentPageRef.current = currentPage }, [currentPage])
-  useEffect(() => { dragStateRef.current   = dragState },   [dragState])
-  useEffect(() => { dropTargetRef.current  = dropTarget },  [dropTarget])
-  useEffect(() => { layoutRef.current      = layout },      [layout])
+  useEffect(() => { dragStateRef.current = dragState }, [dragState])
+  useEffect(() => { dropTargetRef.current = dropTarget }, [dropTarget])
+  useEffect(() => { layoutRef.current = layout }, [layout])
 
   // ── Page navigation ──────────────────────────────────────────────────────────
 
@@ -119,7 +138,7 @@ export default function HomeScreen() {
 
       const cp = currentPageRef.current
       const atStart = cp === 0 && mx > 0
-      const atEnd   = cp >= TOTAL_PAGES - 1 && mx < 0
+      const atEnd = cp >= TOTAL_PAGES - 1 && mx < 0
       const bounded = atStart || atEnd
 
       if (!last) {
@@ -128,7 +147,7 @@ export default function HomeScreen() {
       }
 
       const fast = Math.abs(vx) > 0.3
-      const far  = Math.abs(mx) > SWIPE_THRESHOLD
+      const far = Math.abs(mx) > SWIPE_THRESHOLD
 
       if ((fast || far) && !bounded) {
         goToPage(mx < 0 ? cp + 1 : cp - 1, mx)
@@ -165,11 +184,11 @@ export default function HomeScreen() {
       // Auto page-switch when dragging near the left/right edge
       const container = containerRef.current
       if (container) {
-        const rect  = container.getBoundingClientRect()
-        const relX  = e.clientX - rect.left
-        const w     = rect.width
-        const wantL = relX < w * EDGE_ZONE        && currentPageRef.current > 0
-        const wantR = relX > w * (1 - EDGE_ZONE)  && currentPageRef.current < TOTAL_PAGES - 1
+        const rect = container.getBoundingClientRect()
+        const relX = e.clientX - rect.left
+        const w = rect.width
+        const wantL = relX < w * EDGE_ZONE && currentPageRef.current > 0
+        const wantR = relX > w * (1 - EDGE_ZONE) && currentPageRef.current < TOTAL_PAGES - 1
 
         if ((wantL || wantR) && !pageSwitchTimer.current) {
           const nextPage = wantL ? currentPageRef.current - 1 : currentPageRef.current + 1
@@ -198,7 +217,7 @@ export default function HomeScreen() {
 
         // Remove from source page
         const srcPage = next[ds.fromPage]
-        const srcIdx  = srcPage.indexOf(ds.appId)
+        const srcIdx = srcPage.indexOf(ds.appId)
         if (srcIdx !== -1) srcPage.splice(srcIdx, 1)
 
         // Insert at drop target (clamp in case page shrank after removal)
@@ -215,12 +234,12 @@ export default function HomeScreen() {
     }
 
     document.addEventListener('pointermove', onMove)
-    document.addEventListener('pointerup',   commitDrop)
+    document.addEventListener('pointerup', commitDrop)
     document.addEventListener('pointercancel', commitDrop)
 
     return () => {
       document.removeEventListener('pointermove', onMove)
-      document.removeEventListener('pointerup',   commitDrop)
+      document.removeEventListener('pointerup', commitDrop)
       document.removeEventListener('pointercancel', commitDrop)
       if (pageSwitchTimer.current) {
         clearTimeout(pageSwitchTimer.current)
@@ -232,10 +251,10 @@ export default function HomeScreen() {
   // ── Start icon drag ──────────────────────────────────────────────────────────
 
   function startIconDrag(appId: string, fromPage: number, fromIndex: number, clientX: number, clientY: number) {
-    const ds: DragState  = { appId, fromPage, fromIndex, clientX, clientY }
+    const ds: DragState = { appId, fromPage, fromIndex, clientX, clientY }
     const dt: DropTarget = { page: fromPage, index: fromIndex }
     setIsDraggingIcon(true)
-    setDragState(ds);  dragStateRef.current  = ds
+    setDragState(ds); dragStateRef.current = ds
     setDropTarget(dt); dropTargetRef.current = dt
   }
 
@@ -296,9 +315,9 @@ export default function HomeScreen() {
 
   const displayPages = useMemo(() => {
     type Cell =
-      | { type: 'item';      id: string;  dataSlot: number }
+      | { type: 'item'; id: string; dataSlot: number }
       | { type: 'placeholder' }
-      | { type: 'end-zone';  dataSlot: number }
+      | { type: 'end-zone'; dataSlot: number }
 
     return Array.from({ length: TOTAL_PAGES }, (_, pageIdx): Cell[] => {
       const original = layout[pageIdx] ?? []
@@ -345,31 +364,46 @@ export default function HomeScreen() {
         inset: 0,
         display: 'flex',
         flexDirection: 'column',
-        background: colors.bgGradient,
         overflow: 'hidden',
+        zIndex: 0,
       }}
     >
+      {/* Blurred Background Layer */}
+      <div
+        style={{
+          position: 'absolute',
+          inset: wallpaper ? -50 : 0,
+          background: wallpaper ? `url(${wallpaper}) center/cover no-repeat` : colors.bgGradient,
+          filter: wallpaper ? 'blur(13px)' : 'none',
+          zIndex: -1,
+        }}
+      />
+
       {/* Ambient blobs */}
-      <div
-        className="ambient-blob"
-        style={{
-          width: 280, height: 280,
-          background: colors.accentBlue,
-          top: -40, left: -60,
-          // @ts-expect-error CSS custom property
-          '--blob-duration': '25s', '--blob-tx': '18px', '--blob-ty': '12px',
-        }}
-      />
-      <div
-        className="ambient-blob"
-        style={{
-          width: 200, height: 200,
-          background: colors.accentPurple,
-          bottom: 160, right: -40,
-          // @ts-expect-error CSS custom property
-          '--blob-duration': '30s', '--blob-tx': '-12px', '--blob-ty': '16px',
-        }}
-      />
+      {!wallpaper && (
+        <>
+          <div
+            className="ambient-blob"
+            style={{
+              width: 500, height: 500,
+              background: colors.accentBlue,
+              top: -100, left: -100,
+              // @ts-expect-error CSS custom property
+              '--blob-duration': '25s', '--blob-tx': '40px', '--blob-ty': '20px',
+            }}
+          />
+          <div
+            className="ambient-blob"
+            style={{
+              width: 450, height: 450,
+              background: colors.accentPurple,
+              bottom: 0, right: -100,
+              // @ts-expect-error CSS custom property
+              '--blob-duration': '30s', '--blob-tx': '-25px', '--blob-ty': '35px',
+            }}
+          />
+        </>
+      )}
 
       <StatusBar transparent />
 
@@ -437,6 +471,16 @@ export default function HomeScreen() {
               role="grid"
               aria-label={`App grid, page ${pageIdx + 1} of ${TOTAL_PAGES}`}
             >
+              {pageIdx === 0 && (
+                <div style={WIDGET_SLOT_STYLE}>
+                  <AnalogClock />
+                </div>
+              )}
+              {pageIdx === 0 && (
+                <div style={CALENDAR_SLOT_STYLE}>
+                  <CalendarWidget />
+                </div>
+              )}
               {pageItems.map((cell, di) => {
                 // ── Placeholder slot ──
                 if (cell.type === 'placeholder') {
@@ -506,7 +550,7 @@ export default function HomeScreen() {
               willChange: 'left, top',
             }}
           >
-            <AppIcon manifest={draggedApp} onTap={() => {}} size={60} />
+            <AppIcon manifest={draggedApp} onTap={() => { }} size={60} />
           </div>
         )}
       </div>

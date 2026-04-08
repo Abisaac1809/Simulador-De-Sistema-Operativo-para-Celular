@@ -27,7 +27,7 @@ type VariantStyle = {
 
 const variantStyles: Record<TypographyVariant, VariantStyle> = {
   time: {
-    fontSize: 76,
+    fontSize: 120,
     fontWeight: font.weight.thin,
     color: colors.textPrimary,
     lineHeight: 1,

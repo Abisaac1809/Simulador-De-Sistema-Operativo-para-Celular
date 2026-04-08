@@ -1,7 +1,7 @@
 import { getPinnedApps } from '../kernel/registry'
 import { kernelBus } from '../kernel/events'
 import { useOSStore } from '../kernel/store'
-import { colors, glass, spacing } from '../design/tokens'
+import { spacing } from '../design/tokens'
 import AppIcon from './AppIcon'
 
 export default function Dock() {
@@ -21,9 +21,6 @@ export default function Dock() {
         paddingTop: spacing[3],
         paddingBottom: `calc(${spacing[4]}px + env(safe-area-inset-bottom, 0px))`,
         flexShrink: 0,
-        background: 'linear-gradient(to bottom, transparent, rgba(0,0,0,0.5))',
-        backdropFilter: 'blur(12px)',
-        WebkitBackdropFilter: 'blur(12px)',
       }}
       role="navigation"
       aria-label="Dock"
@@ -34,17 +31,18 @@ export default function Dock() {
           flexDirection: 'row',
           alignItems: 'center',
           justifyContent: 'space-around',
-          background: colors.glassBg,
-          backdropFilter: glass.backdropFilter,
-          WebkitBackdropFilter: glass.backdropFilter,
-          border: `0.5px solid ${colors.glassBorder}`,
-          borderRadius: "40px",
+          background: 'rgba(255, 255, 255, 0.08)',
+          backdropFilter: 'blur(24px)',
+          WebkitBackdropFilter: 'blur(24px)',
+          border: '0.5px solid rgba(255, 255, 255, 0.12)',
+          borderRadius: 40,
           paddingInline: spacing[5],
           paddingBlock: spacing[3],
+          boxShadow: '0 10px 40px rgba(0, 0, 0, 0.35)',
         }}
       >
         {pinnedApps.map(app => (
-          <AppIcon key={app.id} manifest={app} onTap={handleTap} size={52} />
+          <AppIcon key={app.id} manifest={app} onTap={handleTap} size={52} hideLabel={true} />
         ))}
       </div>
     </div>

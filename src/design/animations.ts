@@ -122,6 +122,14 @@ export const toastIn: Variants = {
   },
 }
 
+// ── Full screen slide-down (notification center) ─────────
+
+export const slideDownFull: Variants = {
+  initial: { y: '-100%', opacity: 0 },
+  animate: { y: 0, opacity: 1, transition: transitionSlow },
+  exit:    { y: '-100%', opacity: 0, transition: transitionSlow },
+}
+
 // ── Wiggle (icon edit mode) ───────────────────────────────
 
 export const wiggle: Variants = {

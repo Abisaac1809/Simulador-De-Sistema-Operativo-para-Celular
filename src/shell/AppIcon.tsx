@@ -8,16 +8,17 @@ interface AppIconProps {
   onTap: (id: string) => void
   size?: number
   isEditing?: boolean
+  hideLabel?: boolean
 }
 
-export default function AppIcon({ manifest, onTap, size = 56, isEditing = false }: AppIconProps) {
+export default function AppIcon({ manifest, onTap, size = 56, isEditing = false, hideLabel = false }: AppIconProps) {
   return (
     <motion.div
       animate={isEditing ? {
         rotate: [-1.5, 1.5, -1.5, 1.5, -1.5],
         transition: { duration: 0.45, repeat: Infinity, repeatType: 'loop', ease: 'easeInOut' },
       } : { rotate: 0 }}
-      whileTap={isEditing ? undefined : { scale: 0.92, transition: { duration: 0.1 } }}
+      whileTap={isEditing ? undefined : { scale: 0.88, transition: { type: 'spring', stiffness: 400, damping: 25 } }}
       onClick={() => { if (!isEditing) onTap(manifest.id) }}
       style={{
         display: 'flex',
@@ -37,20 +38,22 @@ export default function AppIcon({ manifest, onTap, size = 56, isEditing = false 
       <IconWrapper color={manifest.color} size={size}>
         {manifest.icon}
       </IconWrapper>
-      <Typography
-        variant="muted"
-        style={{
-          fontSize: 11,
-          textAlign: 'center',
-          maxWidth: size + 8,
-          overflow: 'hidden',
-          textOverflow: 'ellipsis',
-          whiteSpace: 'nowrap',
-          pointerEvents: 'none',
-        }}
-      >
-        {manifest.name}
-      </Typography>
+      {!hideLabel && (
+        <Typography
+          variant="muted"
+          style={{
+            fontSize: 11,
+            textAlign: 'center',
+            maxWidth: size + 8,
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap',
+            pointerEvents: 'none',
+          }}
+        >
+          {manifest.name}
+        </Typography>
+      )}
     </motion.div>
   )
 }

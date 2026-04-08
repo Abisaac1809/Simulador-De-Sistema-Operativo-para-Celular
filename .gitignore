@@ -5,6 +5,9 @@ dist/
 build/
 .claude/
 .agent/
+.agents/
 .gemini/
 .planning/
+skills-lock.jsoskills-lock.json
 CLAUDE.md
+AGENTS.md

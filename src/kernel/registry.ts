@@ -6,7 +6,7 @@ const registry: AppManifest[] = [
   {
     id: 'settings',
     name: 'Settings',
-    icon: '⚙️',
+    icon: 'fi fi-rr-settings',
     color: '#8E8E93',
     component: lazy(() => import('../apps/settings/index')),
     category: 'system',
@@ -16,7 +16,7 @@ const registry: AppManifest[] = [
   {
     id: 'phone',
     name: 'Phone',
-    icon: '📞',
+    icon: 'fi fi-rr-phone-call',
     color: '#34C759',
     component: lazy(() => import('../apps/phone/index')),
     category: 'communication',
@@ -30,7 +30,7 @@ const registry: AppManifest[] = [
   {
     id: 'messages',
     name: 'Messages',
-    icon: '💬',
+    icon: 'fi fi-rr-comment-alt',
     color: '#A060FF',
     component: lazy(() => import('../apps/messages/index')),
     category: 'communication',
@@ -44,7 +44,7 @@ const registry: AppManifest[] = [
   {
     id: 'contacts',
     name: 'Contacts',
-    icon: '👤',
+    icon: 'fi fi-rr-users',
     color: '#FF9500',
     component: lazy(() => import('../apps/contacts/index')),
     category: 'communication',
@@ -58,7 +58,7 @@ const registry: AppManifest[] = [
   {
     id: 'browser',
     name: 'Browser',
-    icon: '🌐',
+    icon: 'fi fi-rr-globe',
     color: '#5E6AD2',
     component: lazy(() => import('../apps/browser/index')),
     category: 'utility',
@@ -68,7 +68,7 @@ const registry: AppManifest[] = [
   {
     id: 'calculator',
     name: 'Calculator',
-    icon: '🧮',
+    icon: 'fi fi-rr-calculator',
     color: '#6090FF',
     component: lazy(() => import('../apps/calculator/index')),
     category: 'utility',
@@ -78,7 +78,7 @@ const registry: AppManifest[] = [
   {
     id: 'clock',
     name: 'Clock',
-    icon: '🕐',
+    icon: 'fi fi-rr-clock-three',
     color: '#FF9F0A',
     component: lazy(() => import('../apps/clock/index')),
     category: 'utility',
@@ -88,7 +88,7 @@ const registry: AppManifest[] = [
   {
     id: 'notes',
     name: 'Notes',
-    icon: '📝',
+    icon: 'fi fi-rr-document',
     color: '#FFD60A',
     component: lazy(() => import('../apps/notes/index')),
     category: 'utility',
@@ -103,7 +103,7 @@ const registry: AppManifest[] = [
   {
     id: 'terminal',
     name: 'Terminal',
-    icon: '💻',
+    icon: 'fi fi-rr-terminal',
     color: '#32D74B',
     component: lazy(() => import('../apps/terminal/index')),
     category: 'utility',
@@ -113,7 +113,7 @@ const registry: AppManifest[] = [
   {
     id: 'weather',
     name: 'Weather',
-    icon: '🌤️',
+    icon: 'fi fi-rr-cloud-sun',
     color: '#64D2FF',
     component: lazy(() => import('../apps/weather/index')),
     category: 'utility',
@@ -123,7 +123,7 @@ const registry: AppManifest[] = [
   {
     id: 'camera',
     name: 'Camera',
-    icon: '📷',
+    icon: 'fi fi-rr-camera',
     color: '#FF60A0',
     component: lazy(() => import('../apps/camera/index')),
     category: 'media',
@@ -133,7 +133,7 @@ const registry: AppManifest[] = [
   {
     id: 'gallery',
     name: 'Gallery',
-    icon: '🖼️',
+    icon: 'fi fi-rr-picture',
     color: '#BF5AF2',
     component: lazy(() => import('../apps/gallery/index')),
     category: 'media',
@@ -148,7 +148,7 @@ const registry: AppManifest[] = [
   {
     id: 'music',
     name: 'Music',
-    icon: '🎵',
+    icon: 'fi fi-rr-music-alt',
     color: '#FF375F',
     component: lazy(() => import('../apps/music/index')),
     category: 'media',

@@ -1,8 +1,8 @@
-import { openDB, type IDBPDatabase } from 'idb'
+import { openDB, deleteDB, type IDBPDatabase } from 'idb'
 import type { Contact, Message, CallRecord, StorageFile } from '../types'
 
 export const DB_NAME = 'nova-os'
-export const DB_VERSION = 1
+export const DB_VERSION = 2
 
 export interface NoteRecord {
   id: string
@@ -25,6 +25,14 @@ export interface AudioTrackRecord {
   artist: string
   duration: number
   blob: Blob
+}
+
+export interface AlarmRecord {
+  id: string
+  label: string
+  time: string          // "HH:MM"
+  enabled: boolean
+  repeat: string[]      // e.g. ["mon", "wed"] — empty = one-time
 }
 
 interface NovaDB {
@@ -62,6 +70,10 @@ interface NovaDB {
     value: AudioTrackRecord
     indexes: { byTitle: string }
   }
+  alarms: {
+    key: string
+    value: AlarmRecord
+  }
 }
 
 let dbPromise: Promise<IDBPDatabase<NovaDB>> | null = null
@@ -70,34 +82,50 @@ export function _resetDbForTesting() {
   dbPromise = null
 }
 
+function openNovaDB(): Promise<IDBPDatabase<NovaDB>> {
+  return openDB<NovaDB>(DB_NAME, DB_VERSION, {
+    upgrade(db, oldVersion) {
+      if (oldVersion < 1) {
+        const files = db.createObjectStore('files', { keyPath: 'path' })
+        files.createIndex('byMimeType', 'mimeType')
+
+        const contacts = db.createObjectStore('contacts', { keyPath: 'id' })
+        contacts.createIndex('byName', 'name')
+
+        const messages = db.createObjectStore('messages', { keyPath: 'id' })
+        messages.createIndex('byContactId', 'contactId')
+        messages.createIndex('byTimestamp', 'timestamp')
+
+        const callLog = db.createObjectStore('callLog', { keyPath: 'id' })
+        callLog.createIndex('byContactId', 'contactId')
+        callLog.createIndex('byTimestamp', 'timestamp')
+
+        const notes = db.createObjectStore('notes', { keyPath: 'id' })
+        notes.createIndex('byUpdatedAt', 'updatedAt')
+
+        db.createObjectStore('bookmarks', { keyPath: 'id' })
+
+        const audioTracks = db.createObjectStore('audioTracks', { keyPath: 'id' })
+        audioTracks.createIndex('byTitle', 'title')
+      }
+      if (oldVersion < 2) {
+        db.createObjectStore('alarms', { keyPath: 'id' })
+      }
+    },
+  })
+}
+
 export function getDB(): Promise<IDBPDatabase<NovaDB>> {
   if (!dbPromise) {
-    dbPromise = openDB<NovaDB>(DB_NAME, DB_VERSION, {
-      upgrade(db, oldVersion) {
-        if (oldVersion < 1) {
-          const files = db.createObjectStore('files', { keyPath: 'path' })
-          files.createIndex('byMimeType', 'mimeType')
-
-          const contacts = db.createObjectStore('contacts', { keyPath: 'id' })
-          contacts.createIndex('byName', 'name')
-
-          const messages = db.createObjectStore('messages', { keyPath: 'id' })
-          messages.createIndex('byContactId', 'contactId')
-          messages.createIndex('byTimestamp', 'timestamp')
-
-          const callLog = db.createObjectStore('callLog', { keyPath: 'id' })
-          callLog.createIndex('byContactId', 'contactId')
-          callLog.createIndex('byTimestamp', 'timestamp')
-
-          const notes = db.createObjectStore('notes', { keyPath: 'id' })
-          notes.createIndex('byUpdatedAt', 'updatedAt')
-
-          db.createObjectStore('bookmarks', { keyPath: 'id' })
-
-          const audioTracks = db.createObjectStore('audioTracks', { keyPath: 'id' })
-          audioTracks.createIndex('byTitle', 'title')
-        }
-      },
+    dbPromise = openNovaDB().catch(async (err: unknown) => {
+      // Browser stored a higher DB version than requested (stale dev state).
+      // Delete and recreate so the app stays functional.
+      if (err instanceof DOMException && err.name === 'VersionError') {
+        console.warn('[storage] DB version mismatch — deleting stale database and recreating.')
+        await deleteDB(DB_NAME)
+        return openNovaDB()
+      }
+      throw err
     })
   }
   return dbPromise
@@ -202,6 +230,13 @@ export const audioTracks = {
   delete: (id: string) => remove('audioTracks', id),
 }
 
+export const alarms = {
+  getAll: () => getAll('alarms'),
+  get: (id: string) => get('alarms', id),
+  put: (alarm: AlarmRecord) => put('alarms', alarm),
+  delete: (id: string) => remove('alarms', id),
+}
+
 export interface StorageStats {
   files: number
   contacts: number
@@ -210,11 +245,12 @@ export interface StorageStats {
   notes: number
   bookmarks: number
   audioTracks: number
+  alarms: number
 }
 
 export async function getStorageStats(): Promise<StorageStats> {
   const db = await getDB()
-  const [f, c, m, cl, n, b, at] = await Promise.all([
+  const [f, c, m, cl, n, b, at, al] = await Promise.all([
     db.count('files'),
     db.count('contacts'),
     db.count('messages'),
@@ -222,6 +258,7 @@ export async function getStorageStats(): Promise<StorageStats> {
     db.count('notes'),
     db.count('bookmarks'),
     db.count('audioTracks'),
+    db.count('alarms'),
   ])
-  return { files: f, contacts: c, messages: m, callLog: cl, notes: n, bookmarks: b, audioTracks: at }
+  return { files: f, contacts: c, messages: m, callLog: cl, notes: n, bookmarks: b, audioTracks: at, alarms: al }
 }

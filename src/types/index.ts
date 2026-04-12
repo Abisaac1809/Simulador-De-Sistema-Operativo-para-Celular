@@ -72,6 +72,7 @@ export interface StorageFile {
   blob: Blob
   createdAt: number // Unix ms
   updatedAt: number // Unix ms
+  type: 'photo' | 'video' | 'file'
 }
 
 // ─── Process / Resource Management ───────────────────────────────────────────

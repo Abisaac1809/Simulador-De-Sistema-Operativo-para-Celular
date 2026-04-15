@@ -8,6 +8,7 @@ import { scaleIn } from '../design/animations'
 import { colors } from '../design/tokens'
 import { Spinner } from '../design'
 import AppErrorBoundary from './AppErrorBoundary'
+import { CurrentUserContext } from '../apps/messages/context'
 
 // ── Constants ─────────────────────────────────────────────────
 const CLOSE_DRAG_THRESHOLD = 100  // px downward to dismiss the app
@@ -105,8 +106,9 @@ function useKeyboardOffset(focusedAppId: string | null): number {
  *         content
  */
 export default function AppContainer() {
-  const focusedAppId = useOSStore(s => s.focusedAppId)
-  const manifest     = focusedAppId ? getApp(focusedAppId) : undefined
+  const focusedAppId  = useOSStore(s => s.focusedAppId)
+  const currentUserId = useOSStore(s => s.currentUserId)
+  const manifest      = focusedAppId ? getApp(focusedAppId) : undefined
 
   const [isFocusingInput, setIsFocusingInput] = useState(false)
   const { bind, springY } = useDragToClose(focusedAppId, !isFocusingInput)
@@ -156,7 +158,9 @@ export default function AppContainer() {
                       overflowY: 'auto',
                     }}
                   >
-                    <manifest.component />
+                    <CurrentUserContext.Provider value={currentUserId}>
+                      <manifest.component />
+                    </CurrentUserContext.Provider>
                   </div>
                 </Suspense>
               </AppErrorBoundary>

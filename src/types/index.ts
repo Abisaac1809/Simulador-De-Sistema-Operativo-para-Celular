@@ -118,6 +118,9 @@ export interface OSData {
 
   // ── Media ──
   currentTrack: { title: string; artist: string } | null
+
+  // ── User identity ──
+  currentUserId: string | null
 }
 
 export interface OSActions {
@@ -150,6 +153,7 @@ export interface OSActions {
   toggleHaptics: () => void
   setWifiStrength: (value: number) => void
   setSignalStrength: (value: number) => void
+  setCurrentUser: (userId: string) => void
 }
 
 export type OSState = OSData & OSActions

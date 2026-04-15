@@ -51,6 +51,7 @@ const INITIAL_STATE: OSData = {
   processes: [],
   notifications: [],
   currentTrack: null,
+  currentUserId: null,
 }
 
 export const useOSStore = create<OSState>()(
@@ -268,6 +269,8 @@ export const useOSStore = create<OSState>()(
         },
 
         setCurrentTrack: (track) => set(state => { state.currentTrack = track }),
+
+        setCurrentUser: (userId: string) => set({ currentUserId: userId }),
       }),
       {
         name: 'nova-os-settings',
@@ -280,6 +283,7 @@ export const useOSStore = create<OSState>()(
           accentColor: state.accentColor,
           doNotDisturb: state.doNotDisturb,
           hapticsEnabled: state.hapticsEnabled,
+          currentUserId: state.currentUserId,
         }),
       }
     )

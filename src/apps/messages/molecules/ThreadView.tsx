@@ -5,7 +5,10 @@ import { GlassButton, Typography, colors, spacing, slideLeft } from '../../../de
 import MessageBubble from '../atoms/MessageBubble'
 import ConversationAvatar from '../atoms/ConversationAvatar'
 import MessageInput from './MessageInput'
+import ConnectionStatus from '../atoms/ConnectionStatus'
 import { useThread } from '../hooks/useThread'
+
+// ── Styles ─────────────────────────────────────────────────────
 
 const ROOT_STYLE: CSSProperties = {
   display: 'flex',
@@ -24,6 +27,15 @@ const TOOLBAR_STYLE: CSSProperties = {
   borderBottom: `1px solid ${colors.glassBorder}`,
 }
 
+const TOOLBAR_TITLE_AREA_STYLE: CSSProperties = {
+  display: 'flex',
+  flexDirection: 'row',
+  alignItems: 'center',
+  gap: spacing[3],
+  flex: 1,
+  minWidth: 0,
+}
+
 const MESSAGES_STYLE: CSSProperties = {
   flex: 1,
   overflowY: 'auto',
@@ -32,19 +44,34 @@ const MESSAGES_STYLE: CSSProperties = {
   flexDirection: 'column',
 }
 
+// ── Props ───────────────────────────────────────────────────────
+
 interface ThreadViewProps {
   contactId: string
   contactName: string
+  currentUserId: string
   onBack: () => void
 }
 
-export default function ThreadView({ contactId, contactName, onBack }: ThreadViewProps) {
-  const { threadMessages, text, setText, send } = useThread(contactId)
+// ── Component ───────────────────────────────────────────────────
+
+export default function ThreadView({
+  contactId,
+  contactName,
+  currentUserId,
+  onBack,
+}: ThreadViewProps) {
+  const { threadMessages, text, setText, send } = useThread(contactId, currentUserId)
   const bottomRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [threadMessages])
+
+  const handleSend = () => {
+    send(text)
+    setText('')
+  }
 
   return (
     <motion.div
@@ -58,8 +85,11 @@ export default function ThreadView({ contactId, contactName, onBack }: ThreadVie
         <GlassButton variant="ghost" onClick={onBack}>
           <i className="fi fi-rr-arrow-left" />
         </GlassButton>
-        <ConversationAvatar name={contactName} />
-        <Typography variant="title">{contactName}</Typography>
+        <div style={TOOLBAR_TITLE_AREA_STYLE}>
+          <ConversationAvatar name={contactName} />
+          <Typography variant="title">{contactName}</Typography>
+        </div>
+        <ConnectionStatus />
       </div>
 
       <div style={MESSAGES_STYLE}>
@@ -69,7 +99,7 @@ export default function ThreadView({ contactId, contactName, onBack }: ThreadVie
         <div ref={bottomRef} />
       </div>
 
-      <MessageInput text={text} onChange={setText} onSend={send} />
+      <MessageInput text={text} onChange={setText} onSend={handleSend} />
     </motion.div>
   )
 }

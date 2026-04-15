@@ -7,10 +7,15 @@ import ConversationList from './molecules/ConversationList'
 import ThreadView from './molecules/ThreadView'
 import ContactPicker from './molecules/ContactPicker'
 import SearchInput from './atoms/SearchInput'
+import { useCurrentUser } from './context'
+
+// ── Constants ───────────────────────────────────────────────────
 
 const VIEW_LIST   = 'list'   as const
 const VIEW_THREAD = 'thread' as const
 const VIEW_PICKER = 'picker' as const
+
+// ── Styles ──────────────────────────────────────────────────────
 
 const ROOT_STYLE: CSSProperties = {
   position: 'relative',
@@ -43,14 +48,22 @@ const VIEW_WRAPPER_STYLE: CSSProperties = {
   overflow: 'hidden',
 }
 
+// ── Types ───────────────────────────────────────────────────────
+
 type View = 'list' | 'thread' | 'picker'
 
-export default function MessagesApp() {
+// ── Component ───────────────────────────────────────────────────
+
+interface MessagesAppProps {
+  currentUserId: string
+}
+
+function MessagesAppInner({ currentUserId }: MessagesAppProps) {
   const [view, setView] = useState<View>(VIEW_LIST)
   const [selectedContactId, setSelectedContactId] = useState<string | null>(null)
   const [selectedContactName, setSelectedContactName] = useState<string>('')
 
-  const { filtered, search, setSearch, load } = useConversations()
+  const { filtered, search, setSearch, load } = useConversations(currentUserId)
 
   const handleSelectConversation = (contactId: string) => {
     const conv = filtered.find(c => c.contactId === contactId)
@@ -59,9 +72,9 @@ export default function MessagesApp() {
     setView(VIEW_THREAD)
   }
 
-  const handlePickContact = (contactId: string, contactName: string) => {
-    setSelectedContactId(contactId)
-    setSelectedContactName(contactName)
+  const handlePickContact = (userId: string, userName: string) => {
+    setSelectedContactId(userId)
+    setSelectedContactName(userName)
     setView(VIEW_THREAD)
   }
 
@@ -111,6 +124,7 @@ export default function MessagesApp() {
             <ThreadView
               contactId={selectedContactId}
               contactName={selectedContactName}
+              currentUserId={currentUserId}
               onBack={handleBackFromThread}
             />
           </motion.div>
@@ -135,4 +149,19 @@ export default function MessagesApp() {
       </AnimatePresence>
     </div>
   )
+}
+
+/**
+ * MessagesApp — reads currentUserId from CurrentUserContext
+ * (provided by AppContainer in the shell layer).
+ * Falls back to a placeholder when userId is not available.
+ */
+export default function MessagesApp() {
+  const currentUserId = useCurrentUser()
+
+  if (!currentUserId) {
+    return null
+  }
+
+  return <MessagesAppInner currentUserId={currentUserId} />
 }

@@ -1,46 +1,79 @@
 import { useState, useEffect, useCallback } from 'react'
-import { messages } from '../../../kernel/storage'
+import { socket, SERVER_BASE_URL } from '../../../lib/socket'
+import { kernelBus } from '../../../kernel/events'
+import type { BackendMessage } from '../types'
 import type { Message } from '../../../types'
 
-export function useThread(contactId: string) {
+function mapToUIMessage(msg: BackendMessage, currentUserId: string): Message {
+  return {
+    id: msg.id,
+    contactId: msg.fromId === currentUserId ? msg.toId : msg.fromId,
+    text: msg.body,
+    timestamp: Date.parse(msg.createdAt),
+    direction: msg.fromId === currentUserId ? 'sent' : 'received',
+    read: true,
+  }
+}
+
+export function useThread(peerUserId: string, currentUserId: string) {
   const [threadMessages, setThreadMessages] = useState<Message[]>([])
   const [text, setText] = useState('')
 
-  const loadAndMarkRead = useCallback(async () => {
-    const msgs = await messages.getByContact(contactId)
-    const sorted = [...msgs].sort((a, b) => a.timestamp - b.timestamp)
+  useEffect(() => {
+    let cancelled = false
 
-    const unread = sorted.filter(m => !m.read && m.direction === 'received')
-    await Promise.all(unread.map(m => messages.put({ ...m, read: true })))
+    fetch(`${SERVER_BASE_URL}/messages/thread/${peerUserId}`, {
+      credentials: 'include',
+    })
+      .then(r => r.json())
+      .then((msgs: BackendMessage[]) => {
+        if (!cancelled) {
+          setThreadMessages(msgs.map(m => mapToUIMessage(m, currentUserId)))
+        }
+      })
+      .catch(() => {
+        // silently ignore load errors — UI will show empty
+      })
 
-    setThreadMessages(
-      sorted.map(m =>
-        !m.read && m.direction === 'received' ? { ...m, read: true } : m
-      )
-    )
-  }, [contactId])
-
-  const send = useCallback(async () => {
-    const trimmed = text.trim()
-    if (!trimmed) return
-
-    const newMsg: Message = {
-      id: crypto.randomUUID(),
-      contactId,
-      text: trimmed,
-      timestamp: Date.now(),
-      direction: 'sent',
-      read: true,
+    const onNewMessage = (msg: BackendMessage) => {
+      if (msg.fromId === peerUserId || msg.toId === peerUserId) {
+        setThreadMessages(prev => [...prev, mapToUIMessage(msg, currentUserId)])
+      }
     }
 
-    await messages.put(newMsg)
-    setText('')
-    setThreadMessages(prev => [...prev, newMsg])
-  }, [contactId, text])
+    socket.on('new-message', onNewMessage)
+
+    return () => {
+      cancelled = true
+      socket.off('new-message', onNewMessage)
+    }
+  }, [peerUserId, currentUserId])
 
   useEffect(() => {
-    loadAndMarkRead()
-  }, [loadAndMarkRead])
+    const onError = (err: { message: string }) => {
+      kernelBus.emit('notification:push', {
+        id: crypto.randomUUID(),
+        appId: 'messages',
+        title: 'Message error',
+        body: `Message not delivered: ${err.message}`,
+        timestamp: Date.now(),
+        read: false,
+      })
+    }
+    socket.on('message-error', onError)
+    return () => {
+      socket.off('message-error', onError)
+    }
+  }, [])
+
+  const send = useCallback(
+    (body: string) => {
+      const trimmed = body.trim()
+      if (!trimmed) return
+      socket.emit('send-message', { toId: peerUserId, body: trimmed })
+    },
+    [peerUserId]
+  )
 
   return { threadMessages, text, setText, send }
 }

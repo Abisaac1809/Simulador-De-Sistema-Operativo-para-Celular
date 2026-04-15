@@ -13,6 +13,7 @@
     "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
+    "@types/socket.io-client": "^1.4.36",
     "@use-gesture/react": "^10.3.1",
     "framer-motion": "^12.38.0",
     "idb": "^8.0.3",
@@ -20,6 +21,7 @@
     "mitt": "^3.0.1",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
+    "socket.io-client": "^4.8.3",
     "zustand": "^5.0.12"
   },
   "devDependencies": {

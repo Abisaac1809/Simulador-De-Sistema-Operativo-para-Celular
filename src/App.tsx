@@ -13,6 +13,7 @@ import NotificationToasts from './shell/NotificationToasts'
 import NotificationCenter from './shell/NotificationCenter'
 import StatusBar from './shell/StatusBar'
 import AssistiveTouch from './shell/assistive-touch'
+import SetupScreen from './shell/SetupScreen'
 
 // ── Constants ─────────────────────────────────────────────────
 const SWITCHER_SWIPE_THRESHOLD = 60   // px upward to open the switcher
@@ -40,9 +41,11 @@ const gestureZoneStyle: CSSProperties = {
 }
 
 export default function App() {
+  const currentUserId = useOSStore(s => s.currentUserId)
   const isLocked = useOSStore(s => s.isLocked)
   const focusedAppId = useOSStore(s => s.focusedAppId)
 
+  // All hooks must be called unconditionally before any early return
   const [isSwitcherOpen, setIsSwitcherOpen] = useState(false)
   const [isNotifCenterOpen, setIsNotifCenterOpen] = useState(false)
 
@@ -56,6 +59,10 @@ export default function App() {
     },
     { axis: 'y', filterTaps: true, threshold: 10 },
   )
+
+  if (!currentUserId) {
+    return <SetupScreen />
+  }
 
   const screen = (
     <div className="os-screen">

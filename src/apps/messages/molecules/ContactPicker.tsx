@@ -1,4 +1,5 @@
 import type { CSSProperties } from 'react'
+import { useState } from 'react'
 import { motion } from 'framer-motion'
 import {
   GlassButton,
@@ -13,6 +14,9 @@ import ConversationAvatar from '../atoms/ConversationAvatar'
 import EmptyState from '../atoms/EmptyState'
 import SearchInput from '../atoms/SearchInput'
 import { useContactPicker } from '../hooks/useContactPicker'
+import { SERVER_BASE_URL } from '../../../lib/socket'
+
+// ── Styles ─────────────────────────────────────────────────────
 
 const ROOT_STYLE: CSSProperties = {
   display: 'flex',
@@ -54,13 +58,60 @@ const CONTACT_ROW_STYLE: CSSProperties = {
   cursor: 'pointer',
 }
 
+const ROW_ERROR_STYLE: CSSProperties = {
+  fontSize: 12,
+  color: colors.danger,
+  paddingLeft: spacing[4],
+  paddingBottom: spacing[1],
+}
+
+// ── Types ───────────────────────────────────────────────────────
+
 interface ContactPickerProps {
-  onSelect: (contactId: string, contactName: string) => void
+  onSelect: (userId: string, userName: string) => void
   onClose: () => void
 }
 
+// ── Component ───────────────────────────────────────────────────
+
 export default function ContactPicker({ onSelect, onClose }: ContactPickerProps) {
   const { filtered, search, setSearch } = useContactPicker()
+  const [rowErrors, setRowErrors] = useState<Record<string, string>>({})
+  const [resolving, setResolving] = useState<Record<string, boolean>>({})
+
+  const handleContactClick = async (contactId: string, contactName: string, phone: string) => {
+    setRowErrors(prev => ({ ...prev, [contactId]: '' }))
+    setResolving(prev => ({ ...prev, [contactId]: true }))
+
+    try {
+      const res = await fetch(
+        `${SERVER_BASE_URL}/users/phone/${encodeURIComponent(phone)}`,
+        { credentials: 'include' }
+      )
+
+      if (res.ok) {
+        const data = await res.json()
+        onSelect(data.userId, data.name)
+      } else if (res.status === 404) {
+        setRowErrors(prev => ({
+          ...prev,
+          [contactId]: 'Este contacto aún no está registrado',
+        }))
+      } else {
+        setRowErrors(prev => ({
+          ...prev,
+          [contactId]: 'No se pudo conectar con el servidor. Intenta de nuevo.',
+        }))
+      }
+    } catch {
+      setRowErrors(prev => ({
+        ...prev,
+        [contactId]: 'No se pudo conectar con el servidor. Intenta de nuevo.',
+      }))
+    } finally {
+      setResolving(prev => ({ ...prev, [contactId]: false }))
+    }
+  }
 
   return (
     <motion.div
@@ -86,18 +137,23 @@ export default function ContactPicker({ onSelect, onClose }: ContactPickerProps)
           <EmptyState message="No contacts found" />
         ) : (
           filtered.map(c => (
-            <motion.div
-              key={c.id}
-              variants={pressScale}
-              initial="rest"
-              whileTap="pressed"
-              onClick={() => onSelect(c.id, c.name)}
-            >
-              <GlassCard style={CONTACT_ROW_STYLE}>
-                <ConversationAvatar name={c.name} />
-                <Typography variant="body">{c.name}</Typography>
-              </GlassCard>
-            </motion.div>
+            <div key={c.id}>
+              <motion.div
+                variants={pressScale}
+                initial="rest"
+                whileTap="pressed"
+                onClick={() => handleContactClick(c.id, c.name, c.phone)}
+                style={{ opacity: resolving[c.id] ? 0.5 : 1 }}
+              >
+                <GlassCard style={CONTACT_ROW_STYLE}>
+                  <ConversationAvatar name={c.name} />
+                  <Typography variant="body">{c.name}</Typography>
+                </GlassCard>
+              </motion.div>
+              {rowErrors[c.id] ? (
+                <p style={ROW_ERROR_STYLE}>{rowErrors[c.id]}</p>
+              ) : null}
+            </div>
           ))
         )}
       </div>

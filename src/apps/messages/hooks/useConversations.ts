@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
-import { messages, contacts } from '../../../kernel/storage'
+import { socket, SERVER_BASE_URL } from '../../../lib/socket'
+import type { BackendConversationSummary } from '../types'
 import type { Message } from '../../../types'
 
 export interface Conversation {
@@ -9,44 +10,60 @@ export interface Conversation {
   unreadCount: number
 }
 
-export function useConversations() {
+function mapSummaryToConversation(
+  summary: BackendConversationSummary,
+  currentUserId: string
+): Conversation {
+  const { lastMessage: lm } = summary
+  return {
+    contactId: summary.peerId,
+    contactName: summary.peerName,
+    lastMessage: {
+      id: lm.id,
+      contactId: summary.peerId,
+      text: lm.body,
+      timestamp: Date.parse(lm.createdAt),
+      direction: lm.fromId === currentUserId ? 'sent' : 'received',
+      read: true,
+    },
+    unreadCount: 0,
+  }
+}
+
+export function useConversations(currentUserId: string) {
   const [conversations, setConversations] = useState<Conversation[]>([])
   const [search, setSearch] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   const load = useCallback(async () => {
-    const [allMessages, allContacts] = await Promise.all([
-      messages.getAll(),
-      contacts.getAll(),
-    ])
-
-    const contactMap = new Map(allContacts.map(c => [c.id, c]))
-
-    const grouped = new Map<string, Message[]>()
-    for (const msg of allMessages) {
-      const group = grouped.get(msg.contactId) ?? []
-      group.push(msg)
-      grouped.set(msg.contactId, group)
-    }
-
-    const result: Conversation[] = []
-    for (const [contactId, msgs] of grouped.entries()) {
-      const contact = contactMap.get(contactId)
-      if (!contact) continue
-      const sorted = [...msgs].sort((a, b) => b.timestamp - a.timestamp)
-      result.push({
-        contactId,
-        contactName: contact.name,
-        lastMessage: sorted[0],
-        unreadCount: msgs.filter(m => !m.read && m.direction === 'received').length,
+    setLoading(true)
+    setError(null)
+    try {
+      const res = await fetch(`${SERVER_BASE_URL}/messages/conversations`, {
+        credentials: 'include',
       })
+      if (!res.ok) throw new Error(`HTTP ${res.status}`)
+      const summaries: BackendConversationSummary[] = await res.json()
+      const mapped = summaries.map(s => mapSummaryToConversation(s, currentUserId))
+      mapped.sort((a, b) => b.lastMessage.timestamp - a.lastMessage.timestamp)
+      setConversations(mapped)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to load conversations')
+    } finally {
+      setLoading(false)
     }
-
-    result.sort((a, b) => b.lastMessage.timestamp - a.lastMessage.timestamp)
-    setConversations(result)
-  }, [])
+  }, [currentUserId])
 
   useEffect(() => {
     load()
+  }, [load])
+
+  useEffect(() => {
+    socket.on('new-message', load)
+    return () => {
+      socket.off('new-message', load)
+    }
   }, [load])
 
   const filtered =
@@ -56,5 +73,5 @@ export function useConversations() {
           c.contactName.toLowerCase().includes(search.toLowerCase())
         )
 
-  return { filtered, search, setSearch, load }
+  return { filtered, search, setSearch, load, loading, error }
 }

@@ -1,0 +1,32 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./nova-os.db"
+}
+
+model User {
+  id        String   @id @default(uuid())
+  phone     String   @unique
+  email     String   @unique
+  name      String
+  token     String?
+  createdAt DateTime @default(now())
+
+  sentMessages     Message[] @relation("SentMessages")
+  receivedMessages Message[] @relation("ReceivedMessages")
+}
+
+model Message {
+  id        String   @id @default(uuid())
+  body      String
+  createdAt DateTime @default(now())
+
+  fromId String
+  toId   String
+
+  from User @relation("SentMessages", fields: [fromId], references: [id])
+  to   User @relation("ReceivedMessages", fields: [toId], references: [id])
+}

@@ -2,11 +2,14 @@ import { useState } from 'react'
 import type { CSSProperties } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { colors, fadeIn } from '../../design'
+import { useOSStore } from '../../kernel/store'
 import TabBar from './molecules/TabBar'
 import RecentsTab from './molecules/RecentsTab'
+import DialerTab from './molecules/DialerTab'
+import ActiveCallScreen from './molecules/ActiveCallScreen'
 import { usePhoneCurrentUser } from './context'
 
-// ── Styles ────────────────────────────────────────────────────
+// ── Styles ────────────────────────────────────────────────
 
 const ROOT_STYLE: CSSProperties = {
   position: 'relative',
@@ -24,14 +27,23 @@ const BODY_STYLE: CSSProperties = {
   overflow: 'hidden',
 }
 
-// ── Components ────────────────────────────────────────────────
+// ── Components ────────────────────────────────────────────
 
 type Tab = 'recents' | 'dialer'
 
 function PhoneAppInner() {
   const [tab, setTab] = useState<Tab>('recents')
+  const activeCall = useOSStore(s => s.activeCall)
 
-  // NOTE: activeCall branch + DialerTab added in Plan 27-03. For now always show tab content.
+  // Active call overrides all tabs — show ActiveCallScreen without tab bar
+  if (activeCall) {
+    return (
+      <div style={ROOT_STYLE}>
+        <ActiveCallScreen />
+      </div>
+    )
+  }
+
   return (
     <div style={ROOT_STYLE}>
       <div style={BODY_STYLE}>
@@ -57,7 +69,7 @@ function PhoneAppInner() {
               exit="exit"
               style={BODY_STYLE}
             >
-              {/* TODO(27-03): DialerTab */}
+              <DialerTab />
             </motion.div>
           )}
         </AnimatePresence>

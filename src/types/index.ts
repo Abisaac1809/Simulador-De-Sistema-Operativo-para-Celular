@@ -121,6 +121,21 @@ export interface OSData {
 
   // ── User identity ──
   currentUserId: string | null
+
+  // ── Calls (ephemeral) ──
+  incomingCall: {
+    callId: string
+    fromId: string
+    callerName: string
+  } | null
+  activeCall: {
+    callId: string
+    peerId: string
+    peerName: string
+    status: 'calling' | 'connected'
+    startedAt: number | null    // Unix ms, stamped when status flips to 'connected'
+    isMuted: boolean
+  } | null
 }
 
 export interface OSActions {
@@ -154,6 +169,12 @@ export interface OSActions {
   setWifiStrength: (value: number) => void
   setSignalStrength: (value: number) => void
   setCurrentUser: (userId: string) => void
+  setIncomingCall: (call: NonNullable<OSData['incomingCall']>) => void
+  clearIncomingCall: () => void
+  setActiveCall: (call: { callId: string; peerId: string; peerName: string; status: 'calling' | 'connected' }) => void
+  setActiveCallConnected: (startedAt: number) => void
+  clearActiveCall: () => void
+  toggleCallMute: () => void
 }
 
 export type OSState = OSData & OSActions

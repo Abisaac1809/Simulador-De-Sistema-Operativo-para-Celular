@@ -295,3 +295,61 @@ describe('system setters', () => {
     expect(useOSStore.getState().hapticsEnabled).toBe(false)
   })
 })
+
+describe('call state', () => {
+  beforeEach(() => {
+    useOSStore.setState({ incomingCall: null, activeCall: null })
+  })
+
+  it('initial state has incomingCall: null and activeCall: null', () => {
+    const { incomingCall, activeCall } = useOSStore.getState()
+    expect(incomingCall).toBeNull()
+    expect(activeCall).toBeNull()
+  })
+
+  it('setIncomingCall sets the incomingCall field', () => {
+    useOSStore.getState().setIncomingCall({ callId: 'c1', fromId: 'u1', callerName: 'Alice' })
+    const { incomingCall } = useOSStore.getState()
+    expect(incomingCall).toEqual({ callId: 'c1', fromId: 'u1', callerName: 'Alice' })
+  })
+
+  it('clearIncomingCall resets incomingCall to null', () => {
+    useOSStore.getState().setIncomingCall({ callId: 'c1', fromId: 'u1', callerName: 'Alice' })
+    useOSStore.getState().clearIncomingCall()
+    expect(useOSStore.getState().incomingCall).toBeNull()
+  })
+
+  it('setActiveCall seeds activeCall with startedAt:null and isMuted:false', () => {
+    useOSStore.getState().setActiveCall({ callId: 'c1', peerId: 'u1', peerName: 'Alice', status: 'calling' })
+    const { activeCall } = useOSStore.getState()
+    expect(activeCall).toEqual({ callId: 'c1', peerId: 'u1', peerName: 'Alice', status: 'calling', startedAt: null, isMuted: false })
+  })
+
+  it('setActiveCallConnected flips status to connected and stamps startedAt', () => {
+    useOSStore.getState().setActiveCall({ callId: 'c1', peerId: 'u1', peerName: 'Alice', status: 'calling' })
+    useOSStore.getState().setActiveCallConnected(1700000000000)
+    const { activeCall } = useOSStore.getState()
+    expect(activeCall?.status).toBe('connected')
+    expect(activeCall?.startedAt).toBe(1700000000000)
+  })
+
+  it('toggleCallMute flips isMuted between true/false', () => {
+    useOSStore.getState().setActiveCall({ callId: 'c1', peerId: 'u1', peerName: 'Alice', status: 'calling' })
+    useOSStore.getState().toggleCallMute()
+    expect(useOSStore.getState().activeCall?.isMuted).toBe(true)
+    useOSStore.getState().toggleCallMute()
+    expect(useOSStore.getState().activeCall?.isMuted).toBe(false)
+  })
+
+  it('toggleCallMute is a no-op when activeCall is null', () => {
+    useOSStore.setState({ activeCall: null })
+    expect(() => useOSStore.getState().toggleCallMute()).not.toThrow()
+    expect(useOSStore.getState().activeCall).toBeNull()
+  })
+
+  it('clearActiveCall resets activeCall to null', () => {
+    useOSStore.getState().setActiveCall({ callId: 'c1', peerId: 'u1', peerName: 'Alice', status: 'calling' })
+    useOSStore.getState().clearActiveCall()
+    expect(useOSStore.getState().activeCall).toBeNull()
+  })
+})

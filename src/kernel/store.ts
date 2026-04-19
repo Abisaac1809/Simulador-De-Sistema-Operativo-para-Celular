@@ -11,7 +11,7 @@ const clamp = (value: number, min: number, max: number) =>
 
 const noopStorage = { getItem: () => null, setItem: () => {}, removeItem: () => {} }
 
-const safeStorage = typeof localStorage !== 'undefined'
+const safeStorage = typeof localStorage !== 'undefined' && typeof localStorage.setItem === 'function'
   ? createJSONStorage(() => localStorage)
   : createJSONStorage(() => noopStorage)
 
@@ -52,6 +52,8 @@ const INITIAL_STATE: OSData = {
   notifications: [],
   currentTrack: null,
   currentUserId: null,
+  incomingCall: null,
+  activeCall: null,
 }
 
 export const useOSStore = create<OSState>()(
@@ -271,6 +273,22 @@ export const useOSStore = create<OSState>()(
         setCurrentTrack: (track) => set(state => { state.currentTrack = track }),
 
         setCurrentUser: (userId: string) => set({ currentUserId: userId }),
+
+        setIncomingCall: (call) => set(state => { state.incomingCall = call }),
+        clearIncomingCall: () => set(state => { state.incomingCall = null }),
+        setActiveCall: (call) => set(state => {
+          state.activeCall = { ...call, startedAt: null, isMuted: false }
+        }),
+        setActiveCallConnected: (startedAt) => set(state => {
+          if (state.activeCall) {
+            state.activeCall.status = 'connected'
+            state.activeCall.startedAt = startedAt
+          }
+        }),
+        clearActiveCall: () => set(state => { state.activeCall = null }),
+        toggleCallMute: () => set(state => {
+          if (state.activeCall) state.activeCall.isMuted = !state.activeCall.isMuted
+        }),
       }),
       {
         name: 'nova-os-settings',

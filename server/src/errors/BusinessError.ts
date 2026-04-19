@@ -38,3 +38,27 @@ export class RecipientNotFoundError extends BusinessError {
     super(id ? `Recipient '${id}' not found` : 'Recipient not found')
   }
 }
+
+export class CalleeNotFoundError extends BusinessError {
+  readonly status = 404
+  readonly name = 'CalleeNotFoundError'
+  constructor(id?: string) { super(id ? `Callee '${id}' not found` : 'Callee not found') }
+}
+
+export class CalleeOfflineError extends BusinessError {
+  readonly status = 422
+  readonly name = 'CalleeOfflineError'
+  constructor() { super('Callee is not connected') }
+}
+
+export class CallNotFoundError extends BusinessError {
+  readonly status = 404
+  readonly name = 'CallNotFoundError'
+  constructor(id?: string) { super(id ? `Call '${id}' not found` : 'Call not found') }
+}
+
+export class CalleeBusyError extends BusinessError {
+  readonly status = 409
+  readonly name = 'CalleeBusyError'
+  constructor() { super('Callee is busy') }
+}

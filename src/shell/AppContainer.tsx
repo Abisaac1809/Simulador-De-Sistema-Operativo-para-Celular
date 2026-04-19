@@ -9,6 +9,7 @@ import { colors } from '../design/tokens'
 import { Spinner } from '../design'
 import AppErrorBoundary from './AppErrorBoundary'
 import { CurrentUserContext } from '../apps/messages/context'
+import { PhoneCurrentUserContext } from '../apps/phone/context'
 
 // ── Constants ─────────────────────────────────────────────────
 const CLOSE_DRAG_THRESHOLD = 100  // px downward to dismiss the app
@@ -180,7 +181,9 @@ export default function AppContainer() {
                     }}
                   >
                     <CurrentUserContext.Provider value={currentUserId}>
-                      <manifest.component />
+                      <PhoneCurrentUserContext.Provider value={currentUserId}>
+                        <manifest.component />
+                      </PhoneCurrentUserContext.Provider>
                     </CurrentUserContext.Provider>
                   </div>
                 </Suspense>

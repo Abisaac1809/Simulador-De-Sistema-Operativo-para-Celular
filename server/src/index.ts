@@ -6,7 +6,9 @@ import cookieParser from 'cookie-parser'
 import userRoutes from './routes/UserRouter'
 import authRoutes from './routes/AuthRouter'
 import messageRoutes, { messageService } from './routes/MessageRouter'
+import callRoutes, { callService } from './routes/CallRouter'
 import MessageGateway from './gateways/MessageGateway'
+import CallGateway from './gateways/CallGateway'
 import globalErrorHandler from './middlewares/globalErrorHandler'
 
 const PORT = Number(process.env.PORT ?? 3000)
@@ -31,10 +33,12 @@ app.use(cookieParser())
 app.use('/users', userRoutes)
 app.use('/auth', authRoutes)
 app.use('/messages', messageRoutes)
+app.use('/calls', callRoutes)
 
 app.use(globalErrorHandler)
 
 new MessageGateway(io, messageService)
+new CallGateway(io, callService)
 
 httpServer.listen(PORT, () => {
   console.log(`Server Running on port ${PORT}`)

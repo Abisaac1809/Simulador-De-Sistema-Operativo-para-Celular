@@ -17,6 +17,9 @@ model User {
 
   sentMessages     Message[] @relation("SentMessages")
   receivedMessages Message[] @relation("ReceivedMessages")
+
+  callerCalls  Call[] @relation("CallerCalls")
+  calleeCalls  Call[] @relation("CalleeCalls")
 }
 
 model Message {
@@ -29,4 +32,17 @@ model Message {
 
   from User @relation("SentMessages", fields: [fromId], references: [id])
   to   User @relation("ReceivedMessages", fields: [toId], references: [id])
+}
+
+model Call {
+  id        String   @id @default(uuid())
+  status    String   @default("calling")
+  duration  Int      @default(0)
+  startedAt DateTime @default(now())
+
+  fromId String
+  toId   String
+
+  from User @relation("CallerCalls", fields: [fromId], references: [id])
+  to   User @relation("CalleeCalls", fields: [toId], references: [id])
 }

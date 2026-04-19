@@ -15,6 +15,7 @@ import NotificationCenter from './shell/NotificationCenter'
 import StatusBar from './shell/StatusBar'
 import AssistiveTouch from './shell/assistive-touch'
 import SetupScreen from './shell/SetupScreen'
+import CallOverlay from './shell/CallOverlay'
 
 // ── Constants ─────────────────────────────────────────────────
 const SWITCHER_SWIPE_THRESHOLD = 60   // px upward to open the switcher
@@ -118,6 +119,9 @@ export default function App() {
 
       {/* Toast notifications — z-index 40 */}
       {!isLocked && <NotificationToasts />}
+
+      {/* Incoming call overlay — z-index 50, visible over lock screen (D-01) */}
+      <CallOverlay />
 
       {/* AssistiveTouch floating ball — z-index 45 */}
       <AssistiveTouch

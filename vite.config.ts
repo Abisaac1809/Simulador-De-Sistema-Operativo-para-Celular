@@ -22,6 +22,7 @@ export default defineConfig({
     },
   },
   server: {
-    allowedHosts: ['ripe-chefs-boil.loca.lt'],
+    host: true,        // listen on 0.0.0.0 — reachable from any device on the network
+    allowedHosts: true,
   },
 })

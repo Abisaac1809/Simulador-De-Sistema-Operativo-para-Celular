@@ -7,7 +7,7 @@ type Variant = 'primary' | 'ghost' | 'danger'
 
 interface GlassButtonProps {
   children: ReactNode
-  onClick?: (e: MouseEvent<HTMLButtonElement>) => void
+  onClick?: (e?: MouseEvent<HTMLButtonElement>) => void
   variant?: Variant
   disabled?: boolean
   className?: string
@@ -64,6 +64,7 @@ export default function GlassButton({
 }: GlassButtonProps) {
   return (
     <motion.button
+      type="button"
       className={className}
       style={{
         ...baseStyle,
@@ -75,7 +76,12 @@ export default function GlassButton({
       variants={pressScale}
       initial="rest"
       whileTap={disabled ? undefined : 'pressed'}
-      onClick={disabled ? undefined : onClick}
+      // onTap is framer-motion's pointer-based gesture — fires correctly on iOS Safari
+      // even when the browser suppresses the synthetic click event after whileTap.
+      onTap={disabled ? undefined : () => onClick?.()}
+      // onClick handles keyboard activation only (Enter / Space → detail === 0).
+      // Pointer clicks go through onTap to avoid double-firing on desktop.
+      onClick={disabled ? undefined : (e) => { if (e.detail === 0) onClick?.(e) }}
       disabled={disabled}
     >
       {children}

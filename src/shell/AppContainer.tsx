@@ -41,7 +41,18 @@ function useDragToClose(focusedAppId: string | null, enabled: boolean) {
   const springY  = useSpring(dragY, { stiffness: SPRING_STIFFNESS, damping: SPRING_DAMPING })
 
   const bind = useDrag(
-    ({ movement: [, my], last }) => {
+    ({ movement: [, my], last, first, event, cancel }) => {
+      // Cancel the gesture immediately if it started on an interactive element
+      // (button, input, link, etc.) so clicks always reach the target on mobile.
+      if (first && event?.target instanceof HTMLElement) {
+        const interactive = (event.target as HTMLElement).closest(
+          'button, input, textarea, a, select, [role="button"], [tabindex]',
+        )
+        if (interactive) {
+          cancel()
+          return
+        }
+      }
       const clamped = Math.max(0, my)  // downward only
       if (!last) {
         dragY.set(clamped)
@@ -105,13 +116,22 @@ function useKeyboardOffset(focusedAppId: string | null): number {
  *       motion.div [springY — live drag position]
  *         content
  */
+// True when the primary input device is coarse (touch screen).
+// Checked once at module load — avoids re-checking on every render.
+const IS_TOUCH_DEVICE =
+  typeof window !== 'undefined' &&
+  window.matchMedia('(pointer: coarse)').matches
+
 export default function AppContainer() {
   const focusedAppId  = useOSStore(s => s.focusedAppId)
   const currentUserId = useOSStore(s => s.currentUserId)
   const manifest      = focusedAppId ? getApp(focusedAppId) : undefined
 
   const [isFocusingInput, setIsFocusingInput] = useState(false)
-  const { bind, springY } = useDragToClose(focusedAppId, !isFocusingInput)
+  // Disable drag-to-close on touch devices: use-gesture's pointer capture
+  // prevents iOS Safari from firing click events on buttons inside the gesture layer.
+  // Mobile users can close apps via AssistiveTouch or the app switcher instead.
+  const { bind, springY } = useDragToClose(focusedAppId, !isFocusingInput && !IS_TOUCH_DEVICE)
   const keyboardOffset    = useKeyboardOffset(focusedAppId)
 
   function handleFocusCapture(e: React.FocusEvent) {
@@ -140,10 +160,11 @@ export default function AppContainer() {
         >
           {/* Middle div: gesture bind on a plain div avoids framer-motion onAnimationStart type conflict */}
           <div
+            className="gesture-layer"
             style={gestureLayerStyle}
             onFocusCapture={handleFocusCapture}
             onBlurCapture={handleBlurCapture}
-            {...bind()}
+            {...(IS_TOUCH_DEVICE ? {} : bind())}
           >
             {/* Inner motion.div: applies spring y-offset during drag */}
             <motion.div style={{ height: '100%', y: springY }}>

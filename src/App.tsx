@@ -1,8 +1,9 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import type { CSSProperties } from 'react'
 import { AnimatePresence } from 'framer-motion'
 import { useDrag } from '@use-gesture/react'
 import { useOSStore } from './kernel/store'
+import { socket } from './lib/socket'
 import LockScreen from './shell/LockScreen'
 import HomeScreen from './shell/HomeScreen'
 import AppContainer from './shell/AppContainer'
@@ -49,6 +50,14 @@ export default function App() {
   const [isSwitcherOpen, setIsSwitcherOpen] = useState(false)
   const [isNotifCenterOpen, setIsNotifCenterOpen] = useState(false)
 
+  // Reconnect the socket on page reload when the user is already authenticated.
+  // socket.connect() is a no-op if the socket is already connected/connecting.
+  useEffect(() => {
+    if (currentUserId && !socket.connected) {
+      socket.connect()
+    }
+  }, [currentUserId])
+
   const bindGestureZone = useDrag(
     ({ movement: [, my], last, velocity: [, vy] }) => {
       if (!last) return
@@ -91,9 +100,10 @@ export default function App() {
       )}
 
       {/* StatusBar overlay when an app is open — z-index 30
-          (HomeScreen renders its own StatusBar; this one covers apps) */}
+          (HomeScreen renders its own StatusBar; this one covers apps)
+          Hidden on mobile via .status-bar-overlay media query */}
       {!isLocked && focusedAppId && (
-        <div style={statusBarOverlayStyle}>
+        <div style={statusBarOverlayStyle} className="status-bar-overlay">
           <StatusBar />
         </div>
       )}

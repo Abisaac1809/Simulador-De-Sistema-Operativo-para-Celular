@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { notes, type NoteRecord } from '../../../kernel/storage'
+import { generateUUID } from '../../../lib/uuid'
 
 export function useNotes() {
   const [noteList, setNoteList] = useState<NoteRecord[]>([])
@@ -12,7 +13,7 @@ export function useNotes() {
 
   const createNote = useCallback(async (): Promise<NoteRecord> => {
     const newNote: NoteRecord = {
-      id: crypto.randomUUID(),
+      id: generateUUID(),
       title: '',
       body: '',
       createdAt: Date.now(),

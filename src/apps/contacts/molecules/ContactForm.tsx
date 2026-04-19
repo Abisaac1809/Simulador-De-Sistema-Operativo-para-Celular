@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import type { CSSProperties } from 'react'
 import { motion } from 'framer-motion'
 import { GlassButton, Typography, colors, font, radius, spacing, slideLeft } from '../../../design'
@@ -63,10 +64,23 @@ interface ContactFormProps {
 
 export default function ContactForm({ initial, onSaved, onCancel }: ContactFormProps) {
   const { name, phone, email, setName, setPhone, setEmail, save } = useContactEditor(initial)
+  const [isSaving, setIsSaving] = useState(false)
+  const [saveError, setSaveError] = useState<string | null>(null)
 
   const handleSave = async () => {
-    const saved = await save()
-    onSaved(saved)
+    if (isSaving) return
+    setSaveError(null)
+    setIsSaving(true)
+    try {
+      const saved = await save()
+      onSaved(saved)
+    } catch (err) {
+      console.error('[ContactForm] save failed:', err)
+      const detail = err instanceof Error ? `${err.name}: ${err.message}` : String(err)
+      setSaveError(`Error: ${detail}`)
+    } finally {
+      setIsSaving(false)
+    }
   }
 
   return (
@@ -84,8 +98,8 @@ export default function ContactForm({ initial, onSaved, onCancel }: ContactFormP
         <Typography variant="title">
           {initial ? 'Edit Contact' : 'New Contact'}
         </Typography>
-        <GlassButton variant="primary" onClick={handleSave}>
-          Save
+        <GlassButton variant="primary" onClick={handleSave} disabled={isSaving}>
+          {isSaving ? 'Saving…' : 'Save'}
         </GlassButton>
       </div>
 
@@ -121,6 +135,15 @@ export default function ContactForm({ initial, onSaved, onCancel }: ContactFormP
             placeholder="email@example.com"
           />
         </div>
+
+        {saveError && (
+          <p style={{ color: 'rgba(255,80,80,0.9)', fontSize: 13, textAlign: 'center', marginTop: spacing[2] }}>
+            {saveError}
+          </p>
+        )}
+        <GlassButton variant="primary" fullWidth onClick={handleSave} disabled={isSaving} style={{ marginTop: spacing[3] }}>
+          {isSaving ? 'Saving…' : 'Save'}
+        </GlassButton>
       </div>
     </motion.div>
   )

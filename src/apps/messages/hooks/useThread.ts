@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { socket, SERVER_BASE_URL } from '../../../lib/socket'
 import { kernelBus } from '../../../kernel/events'
+import { generateUUID } from '../../../lib/uuid'
 import type { BackendMessage } from '../types'
 import type { Message } from '../../../types'
 
@@ -52,7 +53,7 @@ export function useThread(peerUserId: string, currentUserId: string) {
   useEffect(() => {
     const onError = (err: { message: string }) => {
       kernelBus.emit('notification:push', {
-        id: crypto.randomUUID(),
+        id: generateUUID(),
         appId: 'messages',
         title: 'Message error',
         body: `Message not delivered: ${err.message}`,

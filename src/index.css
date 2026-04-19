@@ -208,11 +208,25 @@ a {
   height: 100%;
 }
 
+/* Hide the status bar overlay on mobile — the native OS handles it */
+.status-bar-overlay { display: none; }
+
+/*
+ * Override use-gesture's touch-action: none (set via inline style / useLayoutEffect).
+ * With pan-x, horizontal swipes are native and vertical drags go to JavaScript,
+ * but taps always generate click events — fixing button interactions on iOS Safari.
+ * !important is required to win over inline styles.
+ */
+.gesture-layer { touch-action: pan-x !important; }
+
 @media (min-width: 768px) {
   /* Override body/html background so only #000 shows */
   html, body {
     background: #000 !important;
   }
+
+  /* Show status bar overlay inside the desktop phone frame */
+  .status-bar-overlay { display: block; }
 
   /* Switch to desktop layout */
   .mobile-stage  { display: none; }

@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { contacts } from '../../../kernel/storage'
+import { generateUUID } from '../../../lib/uuid'
 import type { Contact } from '../../../types'
 
 export function useContactEditor(initial: Contact | null) {
@@ -15,7 +16,7 @@ export function useContactEditor(initial: Contact | null) {
 
   const save = useCallback(async (): Promise<Contact> => {
     const contact: Contact = {
-      id: initial?.id ?? crypto.randomUUID(),
+      id: initial?.id ?? generateUUID(),
       name: name.trim(),
       phone: phone.trim(),
       email: email.trim(),

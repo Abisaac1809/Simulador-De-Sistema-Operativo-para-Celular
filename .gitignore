@@ -8,6 +8,6 @@ build/
 .agents/
 .gemini/
 .planning/
-skills-lock.jsoskills-lock.json
+skills-lock.json
 CLAUDE.md
 AGENTS.md

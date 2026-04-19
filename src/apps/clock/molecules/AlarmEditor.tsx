@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { GlassCard, GlassButton, Typography, colors, spacing, radius, slideUp } from '../../../design'
 import type { AlarmRecord } from '../../../kernel/storage'
+import { generateUUID } from '../../../lib/uuid'
 
 interface AlarmEditorProps {
   initial?: AlarmRecord
@@ -38,7 +39,7 @@ export default function AlarmEditor({ initial, onSave, onCancel }: AlarmEditorPr
   function handleSave() {
     const time = `${String(hours).padStart(2, '0')}:${String(mins).padStart(2, '0')}`
     onSave({
-      id: initial?.id ?? crypto.randomUUID(),
+      id: initial?.id ?? generateUUID(),
       label,
       time,
       enabled: initial?.enabled ?? true,

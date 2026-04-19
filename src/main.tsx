@@ -11,6 +11,7 @@ import * as hapticsService from './kernel/services/haptics'
 import * as soundService from './kernel/services/sound'
 import * as resourceManager from './kernel/services/resourceManager'
 import * as networkService from './kernel/services/network'
+import * as callsService from './kernel/services/calls'
 import { runSeed } from './kernel/seed'
 
 clockService.start()
@@ -20,6 +21,7 @@ hapticsService.start()
 soundService.start()
 resourceManager.start()
 networkService.start()
+callsService.start()
 
 runSeed()
 
@@ -28,6 +30,7 @@ if (import.meta.env.DEV) {
   w.useOSStore = useOSStore
   w.kernelBus = kernelBus
   w.resourceManager = resourceManager
+  w.callsService = callsService
 }
 
 createRoot(document.getElementById('root')!).render(

@@ -79,7 +79,7 @@ export default function ContactPicker({ onSelect, onClose }: ContactPickerProps)
   const [rowErrors, setRowErrors] = useState<Record<string, string>>({})
   const [resolving, setResolving] = useState<Record<string, boolean>>({})
 
-  const handleContactClick = async (contactId: string, contactName: string, phone: string) => {
+  const handleContactClick = async (contactId: string, _contactName: string, phone: string) => {
     setRowErrors(prev => ({ ...prev, [contactId]: '' }))
     setResolving(prev => ({ ...prev, [contactId]: true }))
 

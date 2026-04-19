@@ -37,12 +37,17 @@ export default class CallService implements ICallService {
     return calls.map(call => {
       const isOutgoing = call.fromId === userId
       const peer = isOutgoing ? call.toUser : call.fromUser
+      const direction: 'incoming' | 'outgoing' | 'missed' =
+        call.status === CallStatus.MISSED && !isOutgoing ? 'missed'
+        : isOutgoing ? 'outgoing'
+        : 'incoming'
       return {
         id: call.id,
         status: call.status,
         duration: call.duration,
         startedAt: call.startedAt.toISOString(),
         peer: { id: peer.id, name: peer.name, phone: peer.phone },
+        direction,
       }
     })
   }

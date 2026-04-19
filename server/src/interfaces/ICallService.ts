@@ -6,6 +6,7 @@ export interface CallHistoryItem {
   duration: number
   startedAt: string
   peer: { id: string; name: string; phone: string }
+  direction: 'incoming' | 'outgoing' | 'missed'
 }
 
 export default interface ICallService {

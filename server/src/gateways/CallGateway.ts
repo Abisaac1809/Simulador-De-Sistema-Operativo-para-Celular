@@ -5,6 +5,7 @@ import PrismaUserRepository from '../repositories/UserRepository'
 import {
   InitiateCallSchema, CallAnswerSchema, CallRejectSchema,
   CallEndedSchema, WebRTCOfferSchema, WebRTCAnswerSchema, WebRTCIceSchema,
+  VideoToggleSchema,
 } from '../schemas/Call.schemas'
 
 const userRepository = new PrismaUserRepository()
@@ -75,11 +76,13 @@ export default class CallGateway {
 
         const callerUser = await userRepository.findById(userId)
         const callerName = callerUser?.name ?? 'Unknown'
+        const callerPhone = callerUser?.phone ?? ''
 
         this.io.to(calleeId).emit('call-ringing', {
           callId: call.id,
           fromId: userId,
           callerName,
+          callerPhone,
         })
 
         socket.emit('call-initiated', { callId: call.id })
@@ -181,6 +184,12 @@ export default class CallGateway {
         return
       }
       this.io.to(parsed.data.toId).emit('webrtc-ice-candidate', { fromId: userId, candidate: parsed.data.candidate })
+    })
+
+    socket.on('video-toggle', (payload: unknown) => {
+      const parsed = VideoToggleSchema.safeParse(payload)
+      if (!parsed.success) return
+      this.io.to(parsed.data.toId).emit('video-toggle', { fromId: userId, enabled: parsed.data.enabled })
     })
 
     socket.on('disconnect', () => {

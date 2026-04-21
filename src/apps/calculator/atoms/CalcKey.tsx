@@ -27,7 +27,12 @@ const KEY_STYLES: Record<KeyVariant, CSSProperties> = {
     border: `0.5px solid ${colors.glassBorder}`,
     color: colors.textPrimary,
   },
-  equals: {},
+  equals: {
+    background: 'linear-gradient(135deg, rgba(94,106,210,0.55) 0%, rgba(96,144,255,0.45) 100%)',
+    border: '0.5px solid rgba(94,106,210,0.5)',
+    color: colors.textPrimary,
+    boxShadow: '0 0 20px rgba(94, 106, 210, 0.30), 0 2px 10px rgba(0,0,0,0.40)',
+  },
 }
 
 const ACTIVE_OPERATOR_STYLE: CSSProperties = {
@@ -49,7 +54,7 @@ export default function CalcKey({ label, onPress, variant, wide, active }: CalcK
 
   return (
     <GlassButton
-      variant={variant === 'equals' ? 'primary' : 'ghost'}
+      variant="ghost"
       onClick={onPress}
       fullWidth={wide}
       style={{

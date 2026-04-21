@@ -45,8 +45,10 @@ export function useCapture({ videoRef, fireFlash }: UseCaptureParams): UseCaptur
               updatedAt: Date.now(),
               type: 'photo',
             })
+            kernelBus.emit('files:changed', { action: 'put', path: name, kind: 'photo' })
             resolve()
           } catch (err) {
+            console.error('[camera] failed to save photo', err)
             reject(err)
           }
         },

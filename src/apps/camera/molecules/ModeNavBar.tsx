@@ -26,7 +26,7 @@ export default function ModeNavBar({ mode, onChange }: ModeNavBarProps) {
   return (
     <div style={WRAPPER_STYLE}>
       <ModeLabel
-        label="Photo"
+        label="Foto"
         active={mode === 'photo'}
         onClick={() => onChange('photo')}
       />

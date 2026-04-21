@@ -75,7 +75,7 @@ export default function ControlRow({
         type="button"
         style={ICON_BTN_STYLE}
         onClick={onFlip}
-        aria-label="Flip camera"
+        aria-label="Voltear cámara"
       >
         <i className="fi fi-rr-camera-rotate" />
       </button>

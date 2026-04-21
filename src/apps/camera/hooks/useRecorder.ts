@@ -1,5 +1,6 @@
 import { useState, useRef, useCallback } from 'react'
 import { files } from '../../../kernel/storage'
+import { kernelBus } from '../../../kernel/events'
 
 export interface UseRecorderReturn {
   isRecording: boolean
@@ -54,15 +55,20 @@ export function useRecorder(): UseRecorderReturn {
         const resolvedMime = recorder.mimeType || 'video/webm'
         const blob = new Blob(chunksRef.current, { type: resolvedMime })
         const name = `video-${Date.now()}.webm`
-        await files.put({
-          path: name,
-          name,
-          mimeType: resolvedMime,
-          blob,
-          createdAt: Date.now(),
-          updatedAt: Date.now(),
-          type: 'video',
-        })
+        try {
+          await files.put({
+            path: name,
+            name,
+            mimeType: resolvedMime,
+            blob,
+            createdAt: Date.now(),
+            updatedAt: Date.now(),
+            type: 'video',
+          })
+          kernelBus.emit('files:changed', { action: 'put', path: name, kind: 'video' })
+        } catch (err) {
+          console.error('[camera] failed to save video', err)
+        }
         chunksRef.current = []
       }
 

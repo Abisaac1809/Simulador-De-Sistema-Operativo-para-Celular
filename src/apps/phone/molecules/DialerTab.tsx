@@ -11,6 +11,8 @@ import { usePhoneLookup } from '../hooks/usePhoneLookup'
 import ContactRow from '../atoms/ContactRow'
 import Numpad from './Numpad'
 
+const VENEZUELAN_PHONE_REGEX = /^0?4\d{9}$/
+
 // ── Styles ────────────────────────────────────────────────
 
 const ROOT_STYLE: CSSProperties = {
@@ -98,6 +100,8 @@ export default function DialerTab() {
   const { filtered } = useContacts(search)
   const { result, notFound, loading } = usePhoneLookup(digits)
 
+  const isValidFormat = VENEZUELAN_PHONE_REGEX.test(digits)
+
   const handleContactCall = async (c: Contact) => {
     const resp = await fetch(
       `${SERVER_BASE_URL}/users/phone/${encodeURIComponent(c.phone)}`,
@@ -107,15 +111,15 @@ export default function DialerTab() {
       kernelBus.emit('notification:push', {
         id: crypto.randomUUID(),
         appId: 'phone',
-        title: 'Contact not reachable',
-        body: `${c.name} is not registered as a NOVA OS user.`,
+        title: 'Contacto no localizable',
+        body: `${c.name} no está registrado como usuario de NOVA OS.`,
         timestamp: Date.now(),
         read: false,
       })
       return
     }
-    const data = await resp.json() as { id: string; name: string }
-    callsService.startCall(data.id, data.name)
+    const data = await resp.json() as { userId: string }
+    callsService.startCall(data.userId, c.name)
   }
 
   const handleNumpadCall = () => {
@@ -127,7 +131,7 @@ export default function DialerTab() {
   return (
     <div style={ROOT_STYLE}>
       <div style={HEADER_STYLE}>
-        <Typography variant="body" style={{ fontWeight: font.weight.semibold }}>Dialer</Typography>
+        <Typography variant="body" style={{ fontWeight: font.weight.semibold }}>Teclado</Typography>
       </div>
 
       <div style={SEARCH_WRAPPER_STYLE}>
@@ -138,7 +142,7 @@ export default function DialerTab() {
             type="text"
             value={search}
             onChange={e => setSearch(e.target.value)}
-            placeholder="Search contacts…"
+            placeholder="Buscar contactos…"
           />
         </div>
       </div>
@@ -155,7 +159,7 @@ export default function DialerTab() {
           >
             {filtered.length === 0 ? (
               <div style={EMPTY_STATE_STYLE}>
-                <Typography variant="caption">No contacts found</Typography>
+                <Typography variant="caption">No se encontraron contactos</Typography>
               </div>
             ) : (
               filtered.map(c => (
@@ -187,9 +191,14 @@ export default function DialerTab() {
                     {result.name}
                   </Typography>
                 )}
-                {notFound && !loading && (
+                {isValidFormat && notFound && !loading && (
                   <Typography variant="caption" style={{ color: colors.textMuted }}>
-                    Number not registered
+                    Número no registrado
+                  </Typography>
+                )}
+                {!isValidFormat && digits.length > 0 && (
+                  <Typography variant="caption" style={{ color: colors.textMuted }}>
+                    04XXXXXXXXX ó 4XXXXXXXXX
                   </Typography>
                 )}
                 {loading && (

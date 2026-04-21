@@ -82,7 +82,7 @@ export default function Numpad({ onDigit, onBackspace, onCall, canCall }: Props)
         {/* Call button */}
         <motion.button
           style={callBtnStyle(canCall)}
-          aria-label="Start Call"
+          aria-label="Llamar"
           onClick={canCall ? onCall : undefined}
           whileTap={canCall ? { scale: 0.92 } : {}}
         >
@@ -91,7 +91,7 @@ export default function Numpad({ onDigit, onBackspace, onCall, canCall }: Props)
         {/* Backspace button */}
         <motion.button
           style={backspaceBtnStyle}
-          aria-label="Backspace"
+          aria-label="Borrar"
           onClick={onBackspace}
           whileTap={{ scale: 0.92 }}
         >

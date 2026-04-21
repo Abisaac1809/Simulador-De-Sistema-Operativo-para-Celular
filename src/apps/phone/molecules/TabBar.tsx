@@ -13,7 +13,7 @@ const tabBarStyle: CSSProperties = {
   display: 'flex',
   flexDirection: 'row',
   alignItems: 'stretch',
-  borderTop: `1px solid ${colors.glassBorder}`,
+  borderBottom: `1px solid ${colors.glassBorder}`,
   background: colors.glassBg,
   flexShrink: 0,
 }
@@ -46,7 +46,7 @@ export default function TabBar({ activeTab, onChange }: Props) {
       >
         <i className="fi fi-rr-clock" style={{ fontSize: 18, color: activeTab === 'recents' ? colors.accent : colors.textMuted }} />
         <Typography variant="caption" style={{ color: activeTab === 'recents' ? colors.accent : colors.textMuted }}>
-          Recents
+          Recientes
         </Typography>
       </button>
 
@@ -58,7 +58,7 @@ export default function TabBar({ activeTab, onChange }: Props) {
       >
         <i className="fi fi-rr-dial-pad" style={{ fontSize: 18, color: activeTab === 'dialer' ? colors.accent : colors.textMuted }} />
         <Typography variant="caption" style={{ color: activeTab === 'dialer' ? colors.accent : colors.textMuted }}>
-          Dialer
+          Teclado
         </Typography>
       </button>
     </div>

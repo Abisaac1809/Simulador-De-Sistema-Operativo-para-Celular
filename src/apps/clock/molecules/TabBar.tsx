@@ -9,10 +9,10 @@ interface TabBarProps {
 }
 
 const TABS = [
-  { id: 'clock',     icon: 'fi fi-rr-clock-three', label: 'Clock'     },
-  { id: 'alarms',    icon: 'fi fi-rr-bell',         label: 'Alarms'    },
-  { id: 'timer',     icon: 'fi fi-rr-hourglass',    label: 'Timer'     },
-  { id: 'stopwatch', icon: 'fi fi-rr-stopwatch',    label: 'Stopwatch' },
+  { id: 'clock',     icon: 'fi fi-rr-clock-three', label: 'Reloj'          },
+  { id: 'alarms',    icon: 'fi fi-rr-bell',         label: 'Alarmas'        },
+  { id: 'timer',     icon: 'fi fi-rr-hourglass',    label: 'Temporizador'   },
+  { id: 'stopwatch', icon: 'fi fi-rr-stopwatch',    label: 'Cronómetro'     },
 ] as const
 
 export default function TabBar({ activeTab, onTabChange }: TabBarProps) {

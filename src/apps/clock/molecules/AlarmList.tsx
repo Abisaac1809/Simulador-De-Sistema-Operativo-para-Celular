@@ -24,13 +24,13 @@ export default function AlarmList({ alarmList, onToggle, onDelete, onAdd, onEdit
     >
       <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
         <GlassButton onClick={onAdd}>
-          <i className="fi fi-rr-plus" /> New Alarm
+          <i className="fi fi-rr-plus" /> Nueva Alarma
         </GlassButton>
       </div>
 
       {alarmList.length === 0 && (
         <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', flex: 1 }}>
-          <Typography variant="muted">No alarms set</Typography>
+          <Typography variant="muted">No hay alarmas</Typography>
         </div>
       )}
 
@@ -42,7 +42,7 @@ export default function AlarmList({ alarmList, onToggle, onDelete, onAdd, onEdit
           >
             <Typography variant="title" style={{ display: 'block' }}>{alarm.time}</Typography>
             <Typography variant="caption" style={{ display: 'block' }}>
-              {alarm.label || 'Alarm'}
+              {alarm.label || 'Alarma'}
               {alarm.repeat.length > 0 && ` · ${alarm.repeat.join(', ')}`}
             </Typography>
           </div>

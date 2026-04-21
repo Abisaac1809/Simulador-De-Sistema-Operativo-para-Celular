@@ -100,7 +100,7 @@ export default function ContactsApp() {
             style={VIEW_WRAPPER_STYLE}
           >
             <div style={HEADER_STYLE}>
-              <Typography variant="title">Contacts</Typography>
+              <Typography variant="title">Contactos</Typography>
               <GlassButton variant="primary" onClick={handleCreate}>
                 <i className="fi fi-rr-plus" />
               </GlassButton>

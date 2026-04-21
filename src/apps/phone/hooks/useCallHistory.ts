@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { SERVER_BASE_URL } from '../../../lib/socket'
+import { contacts as contactsStore } from '../../../kernel/storage'
 
 export interface CallHistoryItem {
   id: string
@@ -20,13 +21,21 @@ export function useCallHistory() {
     let cancelled = false
     setLoading(true)
     setError(null)
-    fetch(`${SERVER_BASE_URL}/calls`, { credentials: 'include' })
-      .then(r => {
+    Promise.all([
+      fetch(`${SERVER_BASE_URL}/calls`, { credentials: 'include' }).then(r => {
         if (!r.ok) throw new Error('http-error')
-        return r.json()
-      })
-      .then((data: CallHistoryItem[]) => {
-        if (!cancelled) setHistory(data)
+        return r.json() as Promise<CallHistoryItem[]>
+      }),
+      contactsStore.getAll(),
+    ])
+      .then(([data, allContacts]) => {
+        if (cancelled) return
+        const enriched = data.map(item => {
+          const contact = allContacts.find(c => c.phone === item.peer.phone)
+          const name = contact?.name ?? item.peer.phone
+          return { ...item, peer: { ...item.peer, name } }
+        })
+        setHistory(enriched)
       })
       .catch(() => {
         if (!cancelled) setError('fetch-failed')
@@ -34,9 +43,7 @@ export function useCallHistory() {
       .finally(() => {
         if (!cancelled) setLoading(false)
       })
-    return () => {
-      cancelled = true
-    }
+    return () => { cancelled = true }
   }, [version])
 
   const refetch = useCallback(() => setVersion(v => v + 1), [])

@@ -100,7 +100,7 @@ function MessagesAppInner({ currentUserId }: MessagesAppProps) {
             style={VIEW_WRAPPER_STYLE}
           >
             <div style={HEADER_STYLE}>
-              <Typography variant="title">Messages</Typography>
+              <Typography variant="title">Mensajes</Typography>
               <GlassButton variant="primary" onClick={handleOpenPicker}>
                 <i className="fi fi-rr-edit" />
               </GlassButton>

@@ -43,7 +43,7 @@ export default function SearchInput({ value, onChange, placeholder }: SearchInpu
         type="text"
         value={value}
         onChange={e => onChange(e.target.value)}
-        placeholder={placeholder ?? 'Search contacts…'}
+        placeholder={placeholder ?? 'Buscar contactos…'}
       />
     </div>
   )

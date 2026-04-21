@@ -17,9 +17,9 @@ interface EmptyStateProps {
 export default function EmptyState({ message }: EmptyStateProps) {
   return (
     <div style={CONTAINER_STYLE}>
-      <Typography variant="muted">{message ?? 'No messages yet'}</Typography>
+      <Typography variant="muted">{message ?? 'Aún no hay mensajes'}</Typography>
       <Typography variant="caption" style={{ color: colors.textMuted }}>
-        Tap + to start a conversation
+        Toca + para iniciar una conversación
       </Typography>
     </div>
   )

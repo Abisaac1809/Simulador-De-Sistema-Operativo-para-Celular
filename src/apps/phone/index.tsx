@@ -46,6 +46,7 @@ function PhoneAppInner() {
 
   return (
     <div style={ROOT_STYLE}>
+      <TabBar activeTab={tab} onChange={setTab} />
       <div style={BODY_STYLE}>
         <AnimatePresence mode="wait">
           {tab === 'recents' && (
@@ -74,7 +75,6 @@ function PhoneAppInner() {
           )}
         </AnimatePresence>
       </div>
-      <TabBar activeTab={tab} onChange={setTab} />
     </div>
   )
 }

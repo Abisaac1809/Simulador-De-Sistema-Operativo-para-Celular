@@ -1,7 +1,10 @@
 import { useState, useEffect } from 'react'
 import { SERVER_BASE_URL } from '../../../lib/socket'
+import { contacts as contactsStore } from '../../../kernel/storage'
 
 export interface PhoneLookupResult { id: string; name: string; phone: string }
+
+const VENEZUELAN_PHONE_REGEX = /^0?4\d{9}$/
 
 export function usePhoneLookup(phone: string) {
   const [result, setResult] = useState<PhoneLookupResult | null>(null)
@@ -10,7 +13,7 @@ export function usePhoneLookup(phone: string) {
 
   useEffect(() => {
     const trimmed = phone.trim()
-    if (trimmed.length < 3) { setResult(null); setNotFound(false); return }
+    if (!VENEZUELAN_PHONE_REGEX.test(trimmed)) { setResult(null); setNotFound(false); return }
     let cancelled = false
     setLoading(true); setNotFound(false)
     const handle = setTimeout(() => {
@@ -18,14 +21,20 @@ export function usePhoneLookup(phone: string) {
         .then(r => {
           if (r.status === 404) { if (!cancelled) { setResult(null); setNotFound(true) } return null }
           if (!r.ok) throw new Error('http-error')
-          return r.json() as Promise<PhoneLookupResult>
+          return r.json() as Promise<{ userId: string; name: string; phone: string }>
         })
-        .then(data => { if (data && !cancelled) setResult(data) })
+        .then(async data => {
+          if (!data || cancelled) return
+          const allContacts = await contactsStore.getAll()
+          const contact = allContacts.find(c => c.phone === data.phone)
+          if (!cancelled) setResult({ id: data.userId, name: contact?.name ?? data.phone, phone: data.phone })
+        })
         .catch(() => { if (!cancelled) setResult(null) })
         .finally(() => { if (!cancelled) setLoading(false) })
-    }, 250)  // 250ms debounce
+    }, 250)
     return () => { cancelled = true; clearTimeout(handle) }
   }, [phone])
 
   return { result, notFound, loading }
 }
+

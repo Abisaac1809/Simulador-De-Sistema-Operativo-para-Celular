@@ -17,7 +17,7 @@ interface EmptyStateProps {
 export default function EmptyState({ message }: EmptyStateProps) {
   return (
     <div style={CONTAINER_STYLE}>
-      <Typography variant="muted">{message ?? 'No contacts found'}</Typography>
+      <Typography variant="muted">{message ?? 'No se encontraron contactos'}</Typography>
       <Typography variant="caption" style={{ color: colors.textMuted }}>
         Tap + to add one
       </Typography>

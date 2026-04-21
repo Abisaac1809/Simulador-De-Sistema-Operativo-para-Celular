@@ -33,26 +33,26 @@ export default function StopwatchDisplay({
       <div style={{ display: 'flex', gap: spacing[3], justifyContent: 'center', marginBottom: spacing[4] }}>
         {!running && elapsed === 0 && (
           <GlassButton variant="primary" onClick={start}>
-            <i className="fi fi-rr-play" /> Start
+            <i className="fi fi-rr-play" /> Comenzar
           </GlassButton>
         )}
         {running && (
           <>
             <GlassButton onClick={stop}>
-              <i className="fi fi-rr-pause" /> Stop
+              <i className="fi fi-rr-pause" /> Detener
             </GlassButton>
             <GlassButton onClick={lap}>
-              <i className="fi fi-rr-flag" /> Lap
+              <i className="fi fi-rr-flag" /> Vuelta
             </GlassButton>
           </>
         )}
         {!running && elapsed > 0 && (
           <>
             <GlassButton onClick={reset}>
-              <i className="fi fi-rr-rotate-left" /> Reset
+              <i className="fi fi-rr-rotate-left" /> Reiniciar
             </GlassButton>
             <GlassButton variant="primary" onClick={start}>
-              <i className="fi fi-rr-play" /> Resume
+              <i className="fi fi-rr-play" /> Continuar
             </GlassButton>
           </>
         )}
@@ -74,7 +74,7 @@ export default function StopwatchDisplay({
                   borderBottom: `1px solid ${colors.glassBorder}`,
                 }}
               >
-                <Typography variant="body">Lap {i + 1}</Typography>
+                <Typography variant="body">Vuelta {i + 1}</Typography>
                 <div style={{ display: 'flex', gap: spacing[4] }}>
                   <Typography variant="muted">{formatElapsed(split)}</Typography>
                   <Typography variant="body">{formatElapsed(lapTime)}</Typography>

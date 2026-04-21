@@ -81,7 +81,7 @@ export default function NoteEditor({ note, onBack, onSaved }: NoteEditorProps) {
           variant="primary"
           onClick={async () => { await save(); onSaved() }}
         >
-          <i className="fi fi-rr-disk" />&nbsp;Save
+          <i className="fi fi-rr-disk" />&nbsp;Guardar
         </GlassButton>
       </div>
       <div style={DIVIDER_STYLE} />
@@ -89,14 +89,14 @@ export default function NoteEditor({ note, onBack, onSaved }: NoteEditorProps) {
         style={TITLE_INPUT_STYLE}
         value={title}
         onChange={e => setTitle(e.target.value)}
-        placeholder="Title"
+        placeholder="Título"
       />
       <div style={DIVIDER_STYLE} />
       <textarea
         style={BODY_TEXTAREA_STYLE}
         value={body}
         onChange={e => setBody(e.target.value)}
-        placeholder="Start typing..."
+        placeholder="Escribe aquí..."
       />
     </motion.div>
   )

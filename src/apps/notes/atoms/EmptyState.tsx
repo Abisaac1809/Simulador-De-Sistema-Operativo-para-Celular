@@ -13,7 +13,7 @@ const CONTAINER_STYLE: CSSProperties = {
 export default function EmptyState() {
   return (
     <div style={CONTAINER_STYLE}>
-      <Typography variant="muted">No notes yet</Typography>
+      <Typography variant="muted">Aún no hay notas</Typography>
       <Typography variant="caption" style={{ color: colors.textMuted }}>
         Tap + to create one
       </Typography>

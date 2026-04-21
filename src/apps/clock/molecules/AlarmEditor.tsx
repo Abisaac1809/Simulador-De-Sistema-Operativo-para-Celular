@@ -11,13 +11,13 @@ interface AlarmEditorProps {
 }
 
 const DAYS = [
-  { id: 'mon', label: 'Mon' },
-  { id: 'tue', label: 'Tue' },
-  { id: 'wed', label: 'Wed' },
-  { id: 'thu', label: 'Thu' },
-  { id: 'fri', label: 'Fri' },
-  { id: 'sat', label: 'Sat' },
-  { id: 'sun', label: 'Sun' },
+  { id: 'mon', label: 'Lun' },
+  { id: 'tue', label: 'Mar' },
+  { id: 'wed', label: 'Mié' },
+  { id: 'thu', label: 'Jue' },
+  { id: 'fri', label: 'Vie' },
+  { id: 'sat', label: 'Sáb' },
+  { id: 'sun', label: 'Dom' },
 ]
 
 export default function AlarmEditor({ initial, onSave, onCancel }: AlarmEditorProps) {
@@ -105,7 +105,7 @@ export default function AlarmEditor({ initial, onSave, onCancel }: AlarmEditorPr
         <input
           value={label}
           onChange={e => setLabel(e.target.value)}
-          placeholder="Label"
+          placeholder="Etiqueta"
           style={{
             background: 'transparent',
             color: colors.textPrimary,
@@ -143,8 +143,8 @@ export default function AlarmEditor({ initial, onSave, onCancel }: AlarmEditorPr
 
         {/* Actions */}
         <div style={{ display: 'flex', gap: spacing[3] }}>
-          <GlassButton fullWidth onClick={onCancel}>Cancel</GlassButton>
-          <GlassButton fullWidth variant="primary" onClick={handleSave}>Save</GlassButton>
+          <GlassButton fullWidth onClick={onCancel}>Cancelar</GlassButton>
+          <GlassButton fullWidth variant="primary" onClick={handleSave}>Guardar</GlassButton>
         </div>
       </GlassCard>
     </motion.div>

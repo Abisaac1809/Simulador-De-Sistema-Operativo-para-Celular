@@ -66,7 +66,7 @@ export default function NoteCard({ note, onOpen, onDelete }: NoteCardProps) {
           <button
             style={DELETE_BTN_STYLE}
             onClick={(e) => { e.stopPropagation(); onDelete(note.id) }}
-            aria-label="Delete note"
+            aria-label="Eliminar nota"
           >
             <i className="fi fi-rr-trash" />
           </button>

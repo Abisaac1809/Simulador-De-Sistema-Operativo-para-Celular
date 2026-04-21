@@ -77,7 +77,7 @@ export default function ClockApp() {
                 {formatClockTime(time)}
               </Typography>
               <Typography variant="label" style={{ marginTop: spacing[3] }}>
-                {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
+                {new Date().toLocaleDateString('es-ES', { weekday: 'long', month: 'long', day: 'numeric' })}
               </Typography>
             </motion.div>
           )}

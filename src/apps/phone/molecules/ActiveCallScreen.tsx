@@ -1,3 +1,4 @@
+import { useRef, useEffect } from 'react'
 import type { CSSProperties } from 'react'
 import { motion } from 'framer-motion'
 import { IconWrapper, Typography, colors, fadeIn, radius, spacing } from '../../../design'
@@ -16,6 +17,7 @@ const CONTAINER_STYLE: CSSProperties = {
   justifyContent: 'space-between',
   padding: `${spacing[8]}px ${spacing[6]}px`,
   background: colors.bg,
+  overflow: 'hidden',
 }
 
 const TOP_SECTION_STYLE: CSSProperties = {
@@ -23,6 +25,7 @@ const TOP_SECTION_STYLE: CSSProperties = {
   flexDirection: 'column',
   alignItems: 'center',
   gap: spacing[4],
+  zIndex: 2,
 }
 
 const BOTTOM_ROW_STYLE: CSSProperties = {
@@ -30,7 +33,8 @@ const BOTTOM_ROW_STYLE: CSSProperties = {
   flexDirection: 'row',
   justifyContent: 'center',
   alignItems: 'center',
-  gap: spacing[8],
+  gap: spacing[6],
+  zIndex: 2,
 }
 
 const circleBtnStyle = (bg: string): CSSProperties => ({
@@ -46,19 +50,69 @@ const circleBtnStyle = (bg: string): CSSProperties => ({
   fontSize: 22,
 })
 
+const REMOTE_VIDEO_STYLE: CSSProperties = {
+  position: 'absolute',
+  inset: 0,
+  width: '100%',
+  height: '100%',
+  objectFit: 'cover',
+  zIndex: 0,
+}
+
+const LOCAL_PIP_STYLE: CSSProperties = {
+  position: 'absolute',
+  bottom: 120,
+  right: 16,
+  width: 120,
+  height: 160,
+  borderRadius: 12,
+  objectFit: 'cover',
+  transform: 'scaleX(-1)',
+  zIndex: 10,
+  border: '2px solid rgba(255,255,255,0.3)',
+}
+
 // ── Component ─────────────────────────────────────────────
 
 export default function ActiveCallScreen() {
   const activeCall = useOSStore(s => s.activeCall)
+  const remoteVideoRef = useRef<HTMLVideoElement>(null)
+  const localVideoRef = useRef<HTMLVideoElement>(null)
+
+  useEffect(() => {
+    const el = remoteVideoRef.current
+    if (!el) return
+    const stage = el.closest('.desktop-stage, .mobile-stage') as HTMLElement | null
+    if (stage && stage.offsetParent === null) return
+    callsService.setRemoteVideoElement(el)
+    return () => callsService.setRemoteVideoElement(null)
+  }, [])
+
+  useEffect(() => {
+    if (activeCall?.isVideoEnabled && localVideoRef.current) {
+      const track = callsService.getLocalVideoTrack()
+      if (track) {
+        localVideoRef.current.srcObject = new MediaStream([track])
+      }
+    } else if (localVideoRef.current) {
+      localVideoRef.current.srcObject = null
+    }
+  }, [activeCall?.isVideoEnabled])
 
   if (!activeCall) return null
 
   const muteBg = activeCall.isMuted ? colors.glassBgActive : colors.glassBg
   const muteIconColor = activeCall.isMuted ? colors.accent : colors.textPrimary
   const muteIcon = activeCall.isMuted ? 'fi fi-rr-microphone-slash' : 'fi fi-rr-microphone'
-  const muteLabel = activeCall.isMuted ? 'Unmute' : 'Mute'
+  const muteLabel = activeCall.isMuted ? 'Activar micro' : 'Silenciar'
 
-  const statusLabel = activeCall.status === 'calling' ? 'Calling…' : 'Connected'
+  const videoBg = activeCall.isVideoEnabled ? colors.glassBgActive : colors.glassBg
+  const videoIconColor = activeCall.isVideoEnabled ? colors.accent : colors.textPrimary
+  const videoIcon = activeCall.isVideoEnabled ? 'fi fi-rr-video-camera' : 'fi fi-rr-video-camera-alt'
+  const videoLabel = activeCall.isVideoEnabled ? 'Desactivar cámara' : 'Activar cámara'
+
+  const statusLabel = activeCall.status === 'calling' ? 'Llamando…' : 'Conectado'
+  const showRemoteVideo = activeCall.isRemoteVideoEnabled
 
   return (
     <motion.div
@@ -68,11 +122,35 @@ export default function ActiveCallScreen() {
       animate="animate"
       exit="exit"
     >
+      {/* Remote video (fullscreen background) */}
+      <video
+        ref={remoteVideoRef}
+        style={{ ...REMOTE_VIDEO_STYLE, display: showRemoteVideo ? 'block' : 'none' }}
+        autoPlay
+        playsInline
+      />
+
+      {/* Local PiP video */}
+      {activeCall.isVideoEnabled && (
+        <video
+          ref={localVideoRef}
+          style={LOCAL_PIP_STYLE}
+          autoPlay
+          playsInline
+          muted
+        />
+      )}
+
       {/* Top section */}
-      <div style={TOP_SECTION_STYLE}>
-        <IconWrapper color={colors.accentBlue} size={72}>
-          {activeCall.peerName.charAt(0).toUpperCase()}
-        </IconWrapper>
+      <div style={{
+        ...TOP_SECTION_STYLE,
+        ...(showRemoteVideo ? { background: 'rgba(0,0,0,0.4)', borderRadius: 16, padding: spacing[4] } : {}),
+      }}>
+        {!showRemoteVideo && (
+          <IconWrapper color={colors.accentBlue} size={72}>
+            {activeCall.peerName.charAt(0).toUpperCase()}
+          </IconWrapper>
+        )}
 
         <Typography variant="title" style={{ fontSize: 28, textAlign: 'center' }}>
           {activeCall.peerName}
@@ -101,10 +179,20 @@ export default function ActiveCallScreen() {
           <i className={muteIcon} style={{ color: muteIconColor }} />
         </motion.button>
 
+        {/* Video toggle button */}
+        <motion.button
+          style={circleBtnStyle(videoBg)}
+          aria-label={videoLabel}
+          onClick={() => callsService.toggleVideo()}
+          whileTap={{ scale: 0.90 }}
+        >
+          <i className={videoIcon} style={{ color: videoIconColor }} />
+        </motion.button>
+
         {/* Hang up button */}
         <motion.button
           style={circleBtnStyle(colors.danger)}
-          aria-label="Hang up"
+          aria-label="Colgar"
           onClick={() => callsService.hangUp()}
           whileTap={{ scale: 0.90 }}
         >

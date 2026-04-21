@@ -77,12 +77,12 @@ export default function TimerDisplay({
               <GlassButton onClick={() => setSeconds(seconds - 1)}>
                 <i className="fi fi-rr-angle-down" />
               </GlassButton>
-              <Typography variant="muted">sec</Typography>
+              <Typography variant="muted">seg</Typography>
             </div>
           </div>
 
           <GlassButton variant="primary" onClick={start} disabled={minutes === 0 && seconds === 0}>
-            <i className="fi fi-rr-play" /> Start
+            <i className="fi fi-rr-play" /> Comenzar
           </GlassButton>
         </>
       )}
@@ -131,15 +131,15 @@ export default function TimerDisplay({
           <div style={{ display: 'flex', gap: spacing[3] }}>
             {running ? (
               <GlassButton onClick={pause}>
-                <i className="fi fi-rr-pause" /> Pause
+                <i className="fi fi-rr-pause" /> Pausa
               </GlassButton>
             ) : (
               <GlassButton variant="primary" onClick={start}>
-                <i className="fi fi-rr-play" /> Resume
+                <i className="fi fi-rr-play" /> Continuar
               </GlassButton>
             )}
             <GlassButton onClick={reset}>
-              <i className="fi fi-rr-rotate-left" /> Reset
+              <i className="fi fi-rr-rotate-left" /> Reiniciar
             </GlassButton>
           </div>
         </>
@@ -159,10 +159,10 @@ export default function TimerDisplay({
         >
           <GlassCard style={{ textAlign: 'center', padding: spacing[6] }}>
             <Typography variant="title" style={{ display: 'block', marginBottom: spacing[4] }}>
-              Time&apos;s up!
+              ¡Tiempo agotado!
             </Typography>
             <GlassButton variant="primary" onClick={dismissDone}>
-              <i className="fi fi-rr-check" /> Done
+              <i className="fi fi-rr-check" /> Hecho
             </GlassButton>
           </GlassCard>
         </div>

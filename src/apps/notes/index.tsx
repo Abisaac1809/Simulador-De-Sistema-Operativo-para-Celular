@@ -60,7 +60,7 @@ export default function NotesApp() {
             style={VIEW_WRAPPER_STYLE}
           >
             <div style={HEADER_STYLE}>
-              <Typography variant="title">Notes</Typography>
+              <Typography variant="title">Notas</Typography>
               <GlassButton variant="primary" onClick={handleNewNote}>
                 <i className="fi fi-rr-plus" />
               </GlassButton>

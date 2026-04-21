@@ -49,7 +49,7 @@ export default function MessageInput({ text, onChange, onSend }: MessageInputPro
         value={text}
         onChange={e => onChange(e.target.value)}
         onKeyDown={handleKeyDown}
-        placeholder="Message…"
+        placeholder="Mensaje…"
         rows={1}
       />
       <GlassButton

@@ -5,6 +5,9 @@ import { GlassButton, Typography, colors, font, radius, spacing, slideLeft } fro
 import type { Contact } from '../../../types'
 import { useContactEditor } from '../hooks/useContactEditor'
 
+const VENEZUELAN_PHONE_REGEX = /^0?4\d{9}$/
+const COPY_INVALID_PHONE = 'Número inválido. Usa el formato 04245607741 o 4245607741'
+
 const ROOT_STYLE: CSSProperties = {
   display: 'flex',
   flexDirection: 'column',
@@ -66,10 +69,18 @@ export default function ContactForm({ initial, onSaved, onCancel }: ContactFormP
   const { name, phone, email, setName, setPhone, setEmail, save } = useContactEditor(initial)
   const [isSaving, setIsSaving] = useState(false)
   const [saveError, setSaveError] = useState<string | null>(null)
+  const [phoneError, setPhoneError] = useState<string | null>(null)
 
   const handleSave = async () => {
     if (isSaving) return
+    setPhoneError(null)
     setSaveError(null)
+
+    if (!VENEZUELAN_PHONE_REGEX.test(phone.trim())) {
+      setPhoneError(COPY_INVALID_PHONE)
+      return
+    }
+
     setIsSaving(true)
     try {
       const saved = await save()
@@ -96,37 +107,45 @@ export default function ContactForm({ initial, onSaved, onCancel }: ContactFormP
           <i className="fi fi-rr-cross" />
         </GlassButton>
         <Typography variant="title">
-          {initial ? 'Edit Contact' : 'New Contact'}
+          {initial ? 'Editar Contacto' : 'Nuevo Contacto'}
         </Typography>
         <GlassButton variant="primary" onClick={handleSave} disabled={isSaving}>
-          {isSaving ? 'Saving…' : 'Save'}
+          {isSaving ? 'Guardando…' : 'Guardar'}
         </GlassButton>
       </div>
 
       <div style={FORM_STYLE}>
         <div style={FIELD_WRAPPER_STYLE}>
-          <label style={LABEL_STYLE}>Name</label>
+          <label style={LABEL_STYLE}>Nombre</label>
           <input
             style={INPUT_STYLE}
             type="text"
             value={name}
             onChange={e => setName(e.target.value)}
-            placeholder="Full name"
+            placeholder="Nombre completo"
             autoFocus
           />
         </div>
         <div style={FIELD_WRAPPER_STYLE}>
-          <label style={LABEL_STYLE}>Phone</label>
+          <label style={LABEL_STYLE}>Teléfono</label>
           <input
-            style={INPUT_STYLE}
+            style={{
+              ...INPUT_STYLE,
+              borderColor: phoneError ? 'rgba(255,80,80,0.6)' : colors.glassBorder,
+            }}
             type="tel"
             value={phone}
-            onChange={e => setPhone(e.target.value)}
-            placeholder="+1 555 000 0000"
+            onChange={e => { setPhone(e.target.value); setPhoneError(null) }}
+            placeholder="04245607741"
           />
+          {phoneError && (
+            <p style={{ color: 'rgba(255,80,80,0.9)', fontSize: 12, margin: 0, paddingLeft: 4 }}>
+              {phoneError}
+            </p>
+          )}
         </div>
         <div style={FIELD_WRAPPER_STYLE}>
-          <label style={LABEL_STYLE}>Email</label>
+          <label style={LABEL_STYLE}>Correo</label>
           <input
             style={INPUT_STYLE}
             type="email"
@@ -142,7 +161,7 @@ export default function ContactForm({ initial, onSaved, onCancel }: ContactFormP
           </p>
         )}
         <GlassButton variant="primary" fullWidth onClick={handleSave} disabled={isSaving} style={{ marginTop: spacing[3] }}>
-          {isSaving ? 'Saving…' : 'Save'}
+          {isSaving ? 'Guardando…' : 'Guardar'}
         </GlassButton>
       </div>
     </motion.div>

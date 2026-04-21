@@ -49,7 +49,7 @@ export default function RecentsTab() {
     <>
       <div style={headerStyle}>
         <Typography variant="body" style={{ fontWeight: font.weight.semibold }}>
-          Recents
+          Recientes
         </Typography>
       </div>
 
@@ -63,12 +63,12 @@ export default function RecentsTab() {
         {!loading && error && (
           <div style={centerStyle}>
             <i className="fi fi-rr-exclamation" style={{ fontSize: 40, color: colors.danger }} />
-            <Typography variant="label">Could not load call history</Typography>
+            <Typography variant="label">No se pudo cargar el historial</Typography>
             <Typography variant="caption" style={{ color: colors.textSecondary, textAlign: 'center' }}>
-              Check your connection and try again
+              Comprueba tu conexión e inténtalo de nuevo
             </Typography>
             <GlassButton variant="primary" onClick={refetch}>
-              Retry
+              Reintentar
             </GlassButton>
           </div>
         )}
@@ -76,9 +76,9 @@ export default function RecentsTab() {
         {!loading && !error && history.length === 0 && (
           <div style={centerStyle}>
             <i className="fi fi-rr-phone" style={{ fontSize: 40, color: colors.textMuted }} />
-            <Typography variant="label">No recent calls</Typography>
+            <Typography variant="label">No hay llamadas recientes</Typography>
             <Typography variant="caption" style={{ color: colors.textSecondary, textAlign: 'center' }}>
-              Calls you make or receive will appear here
+              Las llamadas que hagas o recibas aparecerán aquí
             </Typography>
           </div>
         )}

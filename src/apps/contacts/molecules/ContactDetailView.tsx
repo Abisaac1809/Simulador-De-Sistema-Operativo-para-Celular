@@ -122,10 +122,10 @@ export default function ContactDetailView({ contact, onBack, onEdit, onDelete }:
 
       <div style={DETAILS_STYLE}>
         {contact.phone && (
-          <ContactDetail icon="fi fi-rr-phone-call" label="Phone" value={contact.phone} />
+          <ContactDetail icon="fi fi-rr-phone-call" label="Teléfono" value={contact.phone} />
         )}
         {contact.email && (
-          <ContactDetail icon="fi fi-rr-envelope" label="Email" value={contact.email} />
+          <ContactDetail icon="fi fi-rr-envelope" label="Correo" value={contact.email} />
         )}
       </div>
     </motion.div>

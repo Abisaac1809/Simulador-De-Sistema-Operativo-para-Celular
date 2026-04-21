@@ -28,17 +28,17 @@ export default function AlarmFiringModal({ alarm, onDismiss, onSnooze }: AlarmFi
     >
       <GlassCard style={{ textAlign: 'center', width: '100%' }}>
         <Typography variant="title" style={{ marginBottom: 8, display: 'block' }}>
-          {alarm.label || 'Alarm'}
+          {alarm.label || 'Alarma'}
         </Typography>
         <Typography variant="time" style={{ fontSize: 48, display: 'block', marginBottom: 24 }}>
           {alarm.time}
         </Typography>
         <div style={{ display: 'flex', gap: 12, justifyContent: 'center' }}>
           <GlassButton onClick={onSnooze}>
-            <i className="fi fi-rr-snooze" /> Snooze
+            <i className="fi fi-rr-snooze" /> Posponer
           </GlassButton>
           <GlassButton variant="primary" onClick={onDismiss}>
-            <i className="fi fi-rr-check" /> Dismiss
+            <i className="fi fi-rr-check" /> Descartar
           </GlassButton>
         </div>
       </GlassCard>

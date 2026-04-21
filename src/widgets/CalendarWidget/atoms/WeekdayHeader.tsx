@@ -1,7 +1,7 @@
 import { type CSSProperties } from 'react'
 import { colors, font } from '../../../design'
 
-const WEEKDAYS = ['M', 'T', 'W', 'T', 'F', 'S', 'S'] as const
+const WEEKDAYS = ['L', 'M', 'X', 'J', 'V', 'S', 'D'] as const
 const HEADER_FONT_SIZE = 9
 
 const LABEL_STYLE: CSSProperties = {

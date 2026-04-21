@@ -122,19 +122,19 @@ export default function ContactPicker({ onSelect, onClose }: ContactPickerProps)
       style={ROOT_STYLE}
     >
       <div style={HEADER_STYLE}>
-        <Typography variant="title">New Message</Typography>
+        <Typography variant="title">Nuevo Mensaje</Typography>
         <GlassButton variant="ghost" onClick={onClose}>
           <i className="fi fi-rr-cross" />
         </GlassButton>
       </div>
 
       <div style={SEARCH_WRAPPER_STYLE}>
-        <SearchInput value={search} onChange={setSearch} placeholder="Search contacts…" />
+        <SearchInput value={search} onChange={setSearch} placeholder="Buscar contactos…" />
       </div>
 
       <div style={LIST_STYLE}>
         {filtered.length === 0 ? (
-          <EmptyState message="No contacts found" />
+          <EmptyState message="No se encontraron contactos" />
         ) : (
           filtered.map(c => (
             <div key={c.id}>

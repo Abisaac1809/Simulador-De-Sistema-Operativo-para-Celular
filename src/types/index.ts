@@ -135,6 +135,8 @@ export interface OSData {
     status: 'calling' | 'connected'
     startedAt: number | null    // Unix ms, stamped when status flips to 'connected'
     isMuted: boolean
+    isVideoEnabled: boolean
+    isRemoteVideoEnabled: boolean
   } | null
 }
 
@@ -168,13 +170,15 @@ export interface OSActions {
   toggleHaptics: () => void
   setWifiStrength: (value: number) => void
   setSignalStrength: (value: number) => void
-  setCurrentUser: (userId: string) => void
+  setCurrentUser: (userId: string | null) => void
   setIncomingCall: (call: NonNullable<OSData['incomingCall']>) => void
   clearIncomingCall: () => void
   setActiveCall: (call: { callId: string; peerId: string; peerName: string; status: 'calling' | 'connected' }) => void
   setActiveCallConnected: (startedAt: number) => void
   clearActiveCall: () => void
   toggleCallMute: () => void
+  toggleCallVideo: () => void
+  setRemoteVideoEnabled: (enabled: boolean) => void
 }
 
 export type OSState = OSData & OSActions
@@ -206,4 +210,5 @@ export type KernelEventMap = {
   'call:incoming': { contactId: string }
   'call:end': void
   'message:received': Message
+  'files:changed': { action: 'put' | 'delete'; path: string; kind: StorageFile['type'] }
 }

@@ -3,7 +3,7 @@ import type { CSSProperties } from 'react'
 import { AnimatePresence } from 'framer-motion'
 import { useDrag } from '@use-gesture/react'
 import { useOSStore } from './kernel/store'
-import { socket } from './lib/socket'
+import { socket, SERVER_BASE_URL } from './lib/socket'
 import LockScreen from './shell/LockScreen'
 import HomeScreen from './shell/HomeScreen'
 import AppContainer from './shell/AppContainer'
@@ -50,6 +50,18 @@ export default function App() {
   // All hooks must be called unconditionally before any early return
   const [isSwitcherOpen, setIsSwitcherOpen] = useState(false)
   const [isNotifCenterOpen, setIsNotifCenterOpen] = useState(false)
+
+  // On mount, validate the stored session against the server.
+  // If the token is gone (e.g. server DB was reset), clear currentUserId so
+  // the setup screen shows and the user can re-register.
+  useEffect(() => {
+    if (!currentUserId) return
+    fetch(`${SERVER_BASE_URL}/calls`, { credentials: 'include' })
+      .then(r => {
+        if (r.status === 401) useOSStore.getState().setCurrentUser(null)
+      })
+      .catch(() => { /* offline — keep existing session */ })
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Reconnect the socket on page reload when the user is already authenticated.
   // socket.connect() is a no-op if the socket is already connected/connecting.

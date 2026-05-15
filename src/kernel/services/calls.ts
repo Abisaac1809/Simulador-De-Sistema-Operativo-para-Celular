@@ -9,22 +9,35 @@ const ICE_SERVERS = [{ urls: 'stun:stun.l.google.com:19302' }]
 let running = false
 let pc: RTCPeerConnection | null = null
 let localStream: MediaStream | null = null
+let localVideoTrack: MediaStreamTrack | null = null
 let remoteAudio: HTMLAudioElement | null = null
+let remoteVideoElement: HTMLVideoElement | null = null
+let pendingRemoteVideoStream: MediaStream | null = null
 let peerId: string | null = null
 let pendingCandidates: RTCIceCandidateInit[] = []
 let remoteDescriptionSet = false
+let callConnected = false
 
 function resetWebRTCState(): void {
   pendingCandidates = []
   remoteDescriptionSet = false
+  callConnected = false
   peerId = null
 }
 
 function cleanupWebRTC(): void {
+  if (localVideoTrack) {
+    localVideoTrack.stop()
+    localVideoTrack = null
+  }
   if (localStream) {
     localStream.getTracks().forEach(t => t.stop())
     localStream = null
   }
+  if (remoteVideoElement) {
+    remoteVideoElement.srcObject = null
+  }
+  pendingRemoteVideoStream = null
   if (pc) {
     pc.onicecandidate = null
     pc.ontrack = null
@@ -52,15 +65,42 @@ function createPeerConnection(targetPeerId: string): RTCPeerConnection {
     }
   }
 
+  // Only active after the initial connection is up (callConnected = true).
+  // Prevents a race where addTrack() during initial setup fires onnegotiationneeded
+  // while onCallAnswered is already mid-way through createOffer/setLocalDescription,
+  // which would cause an InvalidStateError and silently hang up the call.
+  newPc.onnegotiationneeded = async () => {
+    if (!peerId || !callConnected || newPc.signalingState !== 'stable') return
+    try {
+      const offer = await newPc.createOffer()
+      if (newPc.signalingState !== 'stable') return
+      await newPc.setLocalDescription(offer)
+      socket.emit('webrtc-offer', { toId: peerId, sdp: offer })
+    } catch { /* ignore transient errors during hangup */ }
+  }
+
   newPc.ontrack = (ev) => {
-    remoteAudio = new Audio()
-    remoteAudio.srcObject = ev.streams[0]
-    remoteAudio.play().catch(() => { /* autoplay blocked — ignore */ })
+    const stream = ev.streams[0]
+    if (ev.track.kind === 'video') {
+      if (remoteVideoElement) {
+        remoteVideoElement.srcObject = stream
+        remoteVideoElement.play().catch(() => {})
+      } else {
+        // ActiveCallScreen hasn't mounted yet — buffer until setRemoteVideoElement is called
+        pendingRemoteVideoStream = stream
+      }
+      useOSStore.getState().setRemoteVideoEnabled(true)
+    } else {
+      remoteAudio = new Audio()
+      remoteAudio.srcObject = stream
+      remoteAudio.play().catch(() => { /* autoplay blocked — ignore */ })
+    }
   }
 
   newPc.onconnectionstatechange = () => {
     if (!newPc) return
     if (newPc.connectionState === 'connected') {
+      callConnected = true
       useOSStore.getState().setActiveCallConnected(Date.now())
     }
     if (newPc.connectionState === 'failed' || newPc.connectionState === 'disconnected') {
@@ -163,17 +203,22 @@ function onCallError(payload: { message: string }) {
 }
 
 async function onWebRTCOffer(payload: { fromId: string; sdp: RTCSessionDescriptionInit }) {
-  // Callee path: receive offer after user tapped Answer.
   try {
-    if (!localStream) {
-      localStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false })
+    const isRenegotiation = pc !== null
+
+    if (!isRenegotiation) {
+      // Initial offer: acquire mic, create PC, add audio track
+      if (!localStream) {
+        localStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false })
+      }
+      pc = createPeerConnection(payload.fromId)
+      localStream.getTracks().forEach(t => pc!.addTrack(t, localStream!))
     }
-    if (!pc) pc = createPeerConnection(payload.fromId)
-    localStream.getTracks().forEach(t => pc!.addTrack(t, localStream!))
-    await pc.setRemoteDescription(new RTCSessionDescription(payload.sdp))
-    await drainPendingCandidates()
-    const answer = await pc.createAnswer()
-    await pc.setLocalDescription(answer)
+
+    await pc!.setRemoteDescription(new RTCSessionDescription(payload.sdp))
+    if (!isRenegotiation) await drainPendingCandidates()
+    const answer = await pc!.createAnswer()
+    await pc!.setLocalDescription(answer)
     socket.emit('webrtc-answer', { toId: payload.fromId, sdp: answer })
   } catch (err) {
     kernelBus.emit('notification:push', {
@@ -192,6 +237,13 @@ async function onWebRTCAnswer(payload: { fromId: string; sdp: RTCSessionDescript
   if (!pc) return
   await pc.setRemoteDescription(new RTCSessionDescription(payload.sdp))
   await drainPendingCandidates()
+}
+
+function onVideoToggle(payload: { fromId: string; enabled: boolean }) {
+  useOSStore.getState().setRemoteVideoEnabled(payload.enabled)
+  if (!payload.enabled && remoteVideoElement) {
+    remoteVideoElement.srcObject = null
+  }
 }
 
 async function onWebRTCIceCandidate(payload: { fromId: string; candidate: RTCIceCandidateInit }) {
@@ -250,6 +302,50 @@ export function hangUp(): void {
   s.clearActiveCall()
 }
 
+export function setRemoteVideoElement(el: HTMLVideoElement | null): void {
+  remoteVideoElement = el
+  if (el && pendingRemoteVideoStream) {
+    el.srcObject = pendingRemoteVideoStream
+    el.play().catch(() => {})
+    pendingRemoteVideoStream = null
+  }
+}
+
+export function getLocalVideoTrack(): MediaStreamTrack | null {
+  return localVideoTrack
+}
+
+export async function toggleVideo(): Promise<void> {
+  const s = useOSStore.getState()
+  if (!s.activeCall || !peerId) return
+
+  if (!s.activeCall.isVideoEnabled) {
+    try {
+      const videoStream = await navigator.mediaDevices.getUserMedia({ video: true })
+      localVideoTrack = videoStream.getVideoTracks()[0]
+      if (pc && localVideoTrack) {
+        // addTrack triggers onnegotiationneeded which sends a new offer to the remote peer
+        pc.addTrack(localVideoTrack, localStream ?? new MediaStream())
+      }
+      socket.emit('video-toggle', { toId: peerId, enabled: true })
+      s.toggleCallVideo()
+    } catch {
+      // camera denied or unavailable — silently ignore
+    }
+  } else {
+    if (pc && localVideoTrack) {
+      const sender = pc.getSenders().find(s => s.track === localVideoTrack)
+      if (sender) pc.removeTrack(sender) // triggers onnegotiationneeded
+    }
+    if (localVideoTrack) {
+      localVideoTrack.stop()
+      localVideoTrack = null
+    }
+    socket.emit('video-toggle', { toId: peerId, enabled: false })
+    s.toggleCallVideo()
+  }
+}
+
 export function toggleMute(): void {
   useOSStore.getState().toggleCallMute()
   const muted = useOSStore.getState().activeCall?.isMuted ?? false
@@ -271,6 +367,7 @@ export function start(): void {
   socket.on('webrtc-offer', onWebRTCOffer)
   socket.on('webrtc-answer', onWebRTCAnswer)
   socket.on('webrtc-ice-candidate', onWebRTCIceCandidate)
+  socket.on('video-toggle', onVideoToggle)
 }
 
 export function stop(): void {
@@ -286,6 +383,7 @@ export function stop(): void {
   socket.off('webrtc-offer', onWebRTCOffer)
   socket.off('webrtc-answer', onWebRTCAnswer)
   socket.off('webrtc-ice-candidate', onWebRTCIceCandidate)
+  socket.off('video-toggle', onVideoToggle)
   cleanupWebRTC()
   useOSStore.getState().unregisterDaemon(DAEMON_NAME)
 }

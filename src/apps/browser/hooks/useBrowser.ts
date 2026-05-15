@@ -14,7 +14,7 @@ export interface BrowserControls {
   goForward: () => void
   reload: () => void
   onIframeLoad: () => void
-  iframeRef: React.RefObject<HTMLIFrameElement>
+  iframeRef: React.RefObject<HTMLIFrameElement | null>
 }
 
 export default function useBrowser(): BrowserControls {

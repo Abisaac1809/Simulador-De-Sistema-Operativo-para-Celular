@@ -1,7 +1,6 @@
 import type { CSSProperties } from 'react'
 import { motion } from 'framer-motion'
 import { GlassCard, Typography, colors, spacing, font } from '../../../design'
-import CallDirectionIcon from '../atoms/CallDirectionIcon'
 import type { CallHistoryItem } from '../hooks/useCallHistory'
 
 interface Props {

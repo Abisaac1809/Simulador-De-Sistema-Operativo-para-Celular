@@ -14,7 +14,7 @@ export default class AuthController {
 
       const cookieOptions = {
         httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
+        secure: process.env.COOKIE_SECURE === 'true',
         maxAge: SEVEN_DAYS_MS,
         sameSite: 'lax' as const,
       }

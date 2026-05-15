@@ -6,7 +6,7 @@ interface BrowserViewportProps {
   src: string
   isLoading: boolean
   onLoad: () => void
-  iframeRef: React.RefObject<HTMLIFrameElement>
+  iframeRef: React.RefObject<HTMLIFrameElement | null>
 }
 
 const WRAPPER_STYLE: CSSProperties = {

@@ -272,12 +272,12 @@ export const useOSStore = create<OSState>()(
 
         setCurrentTrack: (track) => set(state => { state.currentTrack = track }),
 
-        setCurrentUser: (userId: string) => set({ currentUserId: userId }),
+        setCurrentUser: (userId: string | null) => set({ currentUserId: userId }),
 
         setIncomingCall: (call) => set(state => { state.incomingCall = call }),
         clearIncomingCall: () => set(state => { state.incomingCall = null }),
         setActiveCall: (call) => set(state => {
-          state.activeCall = { ...call, startedAt: null, isMuted: false }
+          state.activeCall = { ...call, startedAt: null, isMuted: false, isVideoEnabled: false, isRemoteVideoEnabled: false }
         }),
         setActiveCallConnected: (startedAt) => set(state => {
           if (state.activeCall) {
@@ -288,6 +288,14 @@ export const useOSStore = create<OSState>()(
         clearActiveCall: () => set(state => { state.activeCall = null }),
         toggleCallMute: () => set(state => {
           if (state.activeCall) state.activeCall.isMuted = !state.activeCall.isMuted
+        }),
+
+        toggleCallVideo: () => set(state => {
+          if (state.activeCall) state.activeCall.isVideoEnabled = !state.activeCall.isVideoEnabled
+        }),
+
+        setRemoteVideoEnabled: (enabled: boolean) => set(state => {
+          if (state.activeCall) state.activeCall.isRemoteVideoEnabled = enabled
         }),
       }),
       {
